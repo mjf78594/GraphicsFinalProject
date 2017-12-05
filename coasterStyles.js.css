@@ -1,0 +1,9 @@
+body {
+    background-color: beige;
+}
+
+#instructions {
+    margin-top: 30px;
+    margin-right: 180px;
+    float: right;
+}

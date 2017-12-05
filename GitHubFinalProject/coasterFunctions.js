@@ -449,7 +449,6 @@ function update() {
             //Set the side and forward vectors
             var up = vec4(0, 1, 0, 0);
             var forward = vec4(xOrient*(1.0-t) + t*xOr2, yOrient*(1.0-t) + t*yOr2, zOrient*(1.0-t) + t*zOr2, 0);
-            console.log(forward);
             forward =  normalize(forward);
 
             forwardVector = forward;
@@ -542,15 +541,16 @@ function render() {
 
     //Set ViewPoint
     var mv = lookAt(lookingFrom, lookingAt, vec3(0, 1, 0));
-
-    //Matrix math
-    mv = mult(mv, translate(xOffset, yOffset, zOffset));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
+
+    //Make sure we have a way to get back to a designated reference matrix
+    var commonMat = mv;
 
     //Every single spot in the entire scene gets at least .5/1% light (R, G, B, A{opacity/transparancy})
     gl.uniform4fv(ambient_light, vec4(.2, .2, .2, 1));
 
-    //(X, Y, Z, w) coordinates for where the light should exist in space.
+    /////Set the Light Positions/////
+    //(X, Y, Z, w) coordinates for where the lights should exist in space.
     //And add it to eye-space for every object in the scene by doing a mult immediately.
     var lightPositions = [];
     lightPositions.push(mult(mv, vec4(-95, 15, -95, 1)));
@@ -559,9 +559,33 @@ function render() {
     lightPositions.push(mult(mv, vec4(95, 15, -95, 1)));
     gl.uniform4fv(light_position, flatten(lightPositions));
 
+    if(trackPoints.length > 0) {
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(negX + 8.5, negY + 1.75, posZ - 3.0));
+        var sLightCurrent = mult(mv, vec4(0.0, 0.0, 0.0, 1.0));
+        gl.uniform4fv(spotlight_position, flatten(sLightCurrent));
+
+        var sLightDirection = mult(commonMat, forwardVector);
+        gl.uniform4fv(spotlight_direction, flatten(sLightDirection));
+    } else {
+        mv = commonMat;
+        mv = mult(mv, rotateY(-90));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(headAngle));
+        mv = mult(mv, translate(xOffset - 1.0, negY + 1.0, zOffset - 7.0));
+        var sLightCurrent = mult(mv, vec4(0.0, 0.0, 0.0, 1.0));
+        gl.uniform4fv(spotlight_position, flatten(sLightCurrent));
+
+        var sLightDirection = mult(mv, forwardVector);
+        gl.uniform4fv(spotlight_direction, flatten(sLightDirection));
+    }
+
+    /////Set The Light Colors/////
     var sLightC = vec4(0.0, 0.0, 0.0, 1.0);
     if(spotlight) {
-        sLightC = vec4(0.7, 0.7, 0.7, 1.0);
+        sLightC = vec4(1.0, 1.0, 1.0, 1.0);
     }
     gl.uniform4fv(spotlight_color, flatten(sLightC));
 
@@ -589,37 +613,11 @@ function render() {
     lightColors.push(whiteC);
     gl.uniform4fv(light_color, flatten(lightColors));
 
-    //Make sure we have a way to get back to a designated reference matrix
-    var commonMat = mv;
 
-    if(trackPoints.length > 0) {
-        mv = commonMat;
-        mv = mult(mv, movementMat);
-        mv = mult(mv, rotateY(yAngle));
-        mv = mult(mv, translate(negX + 8.5, negY + 1.75, posZ - 3.0));
-        var sLightCurrent = mult(mv, vec4(0.0, 0.0, 0.0, 1.0));
-        gl.uniform4fv(spotlight_position, flatten(sLightCurrent));
-
-        var sLightDirection = mult(commonMat, forwardVector);
-        gl.uniform4fv(spotlight_direction, flatten(sLightDirection));
-    } else {
-        mv = commonMat;
-        mv = mult(mv, rotateY(-90));
-        mv = mult(mv, rotateY(yAngle));
-        mv = mult(mv, rotateY(headAngle));
-        mv = mult(mv, translate(xOffset - 1.0, negY + 1.0, zOffset - 7.0));
-        var sLightCurrent = mult(mv, vec4(0.0, 0.0, 0.0, 1.0));
-        gl.uniform4fv(spotlight_position, flatten(sLightCurrent));
-
-        var sLightDirection = mult(mv, forwardVector);
-        gl.uniform4fv(spotlight_direction, flatten(sLightDirection));
-
-    }
-
+    ///////////Drawing begins here ///////////////
     //placeholder is a counter keeping track of the starting index of where we are in the buffer.
     var placeholder = 0;
 
-    ///////////Drawing begins here ///////////////
     //set the specular color and exponent for ground
     gl.vertexAttrib4fv(vSpecularColor, vec4(1.0, 1.0, 1.0, 1.0));
     //30.0 is the level of gloss, 100 = max
@@ -627,7 +625,6 @@ function render() {
 
     ////Draw Ground////
     gl.drawArrays(gl.TRIANGLES, 0, groundVertices);
-
     placeholder += groundVertices;
 
     ////Draw some pyramids/////
@@ -663,7 +660,6 @@ function render() {
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
     gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
-
     placeholder += pyramidVertices;
 
     ///////Draw the light spheres///////
@@ -677,7 +673,6 @@ function render() {
     mv = mult(mv, scalem(5, 5, 5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
     gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
-
     placeholder += lightVerts/4;
 
     //Green Light
@@ -686,7 +681,6 @@ function render() {
     mv = mult(mv, scalem(5, 5, 5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
     gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
-
     placeholder += lightVerts/4;
 
     //Blue Light
@@ -695,7 +689,6 @@ function render() {
     mv = mult(mv, scalem(5, 5, 5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
     gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
-
     placeholder += lightVerts/4;
 
     //White Light
@@ -704,12 +697,10 @@ function render() {
     mv = mult(mv, scalem(5, 5, 5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
     gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
-
     placeholder += lightVerts/4;
 
     //////Draw Cart//////
     if(trackPoints.length > 0) {
-        mv = commonMat;
         //set the specular exponent for the cart body
         gl.vertexAttrib1f(vSpecularExponent, 40.0);
 

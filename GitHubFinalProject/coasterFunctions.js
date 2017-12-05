@@ -111,7 +111,7 @@ var movementMat;
 
 var p0 = 0; //Control point index 0 is the starting P0
 var t = 0; //t is the free parameter
-var tstep = 0.01; //delta t
+var tstep = 0.2; //delta t
 
 window.onload = function init() {
 
@@ -370,7 +370,7 @@ window.onload = function init() {
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 48, 32);
     gl.enableVertexAttribArray(vNormal);
 
-    window.setInterval(update, 40);
+    window.setInterval(update, 16);
 }
 
 //Resets the zoom and dolly
@@ -421,33 +421,35 @@ function update() {
             zAngle -=10;
             yAngle = -90;
 
-            // t+=tstep; //Increase to next t value
-            // if(t >= 1){//Move to next set of control points
-            //     t-=1;
-            //     p0= (p0+1)%trackPoints.length;//advance to next set of control points
-            //     //at any given time, a cubic spline needs 4 of the control points
-            //     var points = [trackPoints[p0], trackPoints[(p0+1)%trackPoints.length], trackPoints[(p0+2)%trackPoints.length], trackPoints[(p0+3)%trackPoints.length]];
-            // }
+            var points = [trackPoints[p0], trackPoints[(p0+1)%trackPoints.length], trackPoints[(p0+2)%trackPoints.length]];
+            t+=tstep; //Increase to next t value
+            if(t >= 1){//Move to next set of control points
+                t-=1;
+                p0= (p0+1)%trackPoints.length;//advance to next set of control points
+                points = [trackPoints[p0], trackPoints[(p0+1)%trackPoints.length], trackPoints[(p0+2)%trackPoints.length]];
+            }
 
             //Provide orientation for the new forward vector
             var xOrient;
             var yOrient;
             var zOrient;
-            if (trackIndex === trackPoints.length - 1) {
-                xOrient = trackPoints[0][0] - trackPoints[trackIndex][0];
-                yOrient = trackPoints[0][1] - trackPoints[trackIndex][1];
-                zOrient = trackPoints[0][2] - trackPoints[trackIndex][2];
-                forwardPoint = vec3(trackPoints[0][0], trackPoints[0][1] - 88, trackPoints[0][2]);
-            } else {
-                xOrient = trackPoints[trackIndex + 1][0] - trackPoints[trackIndex][0];
-                yOrient = trackPoints[trackIndex + 1][1] - trackPoints[trackIndex][1];
-                zOrient = trackPoints[trackIndex + 1][2] - trackPoints[trackIndex][2];
-                forwardPoint = vec3(trackPoints[trackIndex + 1][0], trackPoints[trackIndex + 1][1] - 88, trackPoints[trackIndex + 1][2]);
-            }
+            xOrient = points[1][0] - points[0][0];
+            yOrient = points[1][1] - points[0][1];
+            zOrient = points[1][2] - points[0][2];
+
+            var xOr2;
+            var yOr2;
+            var zOr2;
+            xOr2 = points[2][0] - points[1][0];
+            yOr2 = points[2][1] - points[1][1];
+            zOr2 = points[2][2] - points[1][2];
+
+            forwardPoint = vec3(points[1][0]*(1.0-t) + t*points[2][0], points[1][1]*(1.0-t) + t*points[2][1] - 88, points[1][2]*(1.0-t) + t*points[2][2]);
 
             //Set the side and forward vectors
             var up = vec4(0, 1, 0, 0);
-            var forward = vec4(xOrient, yOrient, zOrient, 0);
+            var forward = vec4(xOrient*(1.0-t) + t*xOr2, yOrient*(1.0-t) + t*yOr2, zOrient*(1.0-t) + t*zOr2, 0);
+            console.log(forward);
             forward =  normalize(forward);
 
             forwardVector = forward;
@@ -460,7 +462,7 @@ function update() {
             perp = cross(normalize(side), normalize(forward));
             up = vec4(perp, 0.0);
 
-            var origin = vec4(trackPoints[trackIndex][0], trackPoints[trackIndex][1] - 85.5, trackPoints[trackIndex][2], 1.0);
+            var origin = vec4(points[0][0]*(1.0-t) + t*points[1][0], points[0][1]*(1.0-t) + t*points[1][1] - 85.5, points[0][2]*(1.0-t) + t*points[1][2], 1.0);
 
             //Create the movement matrix
             movementMat = mat4(side, up, forward, origin);
@@ -468,13 +470,6 @@ function update() {
 
             //Set the current point for the free roaming Camera
             currentPoint = vec3(origin);
-
-            //Make sure we loop through the track and don't go out of bounds
-            if (trackIndex === trackPoints.length - 1) {
-                trackIndex = 0;
-            } else {
-                trackIndex++;
-            }
 
             /*
             *************** This is the documentation for project 3 ***************

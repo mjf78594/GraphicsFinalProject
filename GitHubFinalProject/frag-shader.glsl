@@ -24,15 +24,15 @@ uniform highp float cutoff;
 //uniform sampler2D depthColorTexture;
 //uniform vec3 uColor;
 
-float decodeFloat(vec4 color) {
-    const vec4 bitshift = vec4 (
-        1.0 / (256.0 * 256.0 * 256.0),
-        1.0 / (256.0 *256.0),
-        1.0 / 256.0,
-        1.0
-    );
-    return dot(color, bitShift);
-}
+//float decodeFloat(vec4 color) {
+//    const vec4 bitshift = vec4 (
+//        1.0 / (256.0 * 256.0 * 256.0),
+//        1.0 / (256.0 *256.0),
+//        1.0 / 256.0,
+//        1.0
+//    );
+//    return dot(color, bitShift);
+//}
 
 
 

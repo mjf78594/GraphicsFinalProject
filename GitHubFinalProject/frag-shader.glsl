@@ -59,7 +59,7 @@ void main() {
     //        }
     //    }
     //}
-    amountInLight /= 9.0;
+    //amountInLight /= 9.0;
 
     //Blin-Phong; Re-normalize vectors
     vec3 newN = normalize(N);
@@ -119,6 +119,6 @@ void main() {
     }
 
     fColor = amb + diff + spec;
-    fColor = vec4(amountInLight * fColor);
+    //fColor = vec4(amountInLight * fColor);
     fColor.a = 1.0;
 }

@@ -3,6 +3,7 @@
 var gl;
 var canvas;
 var program;
+var lightPogram;
 var bufferId;
 var mode; //Moving: 1 / Not moving : 0
 
@@ -43,7 +44,6 @@ var savedDolly;
 var worldToDraw;
 
 //Arrays of vec4 colors
-var cartColors;
 var trackColors;
 var railColors;
 
@@ -109,6 +109,7 @@ var depth;
 var trackIndex;
 var movementMat;
 
+//Only used for linear interpolation
 var p0 = 0; //Control point index 0 is the starting P0
 var t = 0; //t is the free parameter
 var tstep = 0.2; //delta t
@@ -125,6 +126,8 @@ window.onload = function init() {
     //initialize programs
     program = initShaders(gl, "vert-shader.glsl", "frag-shader.glsl");
     gl.useProgram(program);
+
+    lightPogram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
 
     //initialize uniforms from shader
     umv = gl.getUniformLocation(program, "mv");
@@ -180,15 +183,7 @@ window.onload = function init() {
     //identity matrix, will be used for movement orientation
     movementMat = mat4();
 
-    /////Define the colors of the cart, track, and rails
-    cartColors = [];
-    cartColors.push(vec4(0.0, 0.0, 1.0, 1.0)); //blue
-    cartColors.push(vec4(1.0, 0.0, 1.0, 1.0)); //light blue
-    cartColors.push(vec4(0.0, 1.0, 1.0, 1.0)); //purple
-    cartColors.push(vec4(1.0, 0.0, 0.0, 1.0)); //red
-    cartColors.push(vec4(0.6, 0.1, 0.3, 1.0)); //maroon
-    cartColors.push(vec4(0.3, 1.0, 0.4, 1.0)); //yellow green
-
+    /////Define the colors of the track and rails
     trackColors = [];
     trackColors.push(vec4(0.8, 0.4, 0.2, 1.0)); //brown
     trackColors.push(vec4(0.8, 0.4, 0.2, 1.0)); //brown
@@ -327,7 +322,7 @@ window.onload = function init() {
         }
     });
 
-    //Set up the landscape, cart, wheels, track boards and rails
+    //Set up the landscape, cart, wheels, track boards and rails (Handled in geometryCreationFunctions.js)
     makeLandscape();
     makePyramid();
     generateSphere(60, vec4(1.0, 0.0, 0.0, 1.0), lightGlobe); //Create a light source

@@ -1,8 +1,8 @@
 #version 300 es
 
-attribute vec3 aVertexPosition;
+in vec4 vPosition;
 uniform mat4 uPMatrix; //Proj matrix
 uniform mat4 uMVMatrix; //Model View Matrix
 void main (void) {
-  gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+  gl_Position = uPMatrix * uMVMatrix * vPosition;
 }

@@ -1,6 +1,9 @@
 #version 300 es
 precision mediump float;
 
+//varying vec2 vDepthUv;
+//varying vec4 shadowPos;
+
 in vec4 fSpecularColor;
 in float fSpecularExponent;
 in vec3 N;
@@ -18,9 +21,47 @@ uniform highp vec4 spotlight_color;
 uniform highp vec4 spotlight_position;
 uniform highp vec4 spotlight_direction;
 uniform highp float cutoff;
+//uniform sampler2D depthColorTexture;
+//uniform vec3 uColor;
+
+float decodeFloat(vec4 color) {
+    const vec4 bitshift = vec4 (
+        1.0 / (256.0 * 256.0 * 256.0),
+        1.0 / (256.0 *256.0),
+        1.0 / 256.0,
+        1.0
+    );
+    return dot(color, bitShift);
+}
+
+
 
 void main() {
-    //Re-normalize
+    ////This Portion is for the shadows;u uncomment when ready/////
+    //vec3 fragmentDepth = shadowPos.xyz;
+    //float shadowAcneRemover = 0.007;
+    //fragmentDepth.z -= shadowAcneRemover;
+    //float texelSize = 1.0/1024.0;
+    //float amountInLight = 0.0;
+
+    // Check whether or not the current fragment and the 8 fragments surrounding
+    // the current fragment are in the shadow. We then average out whether or not
+    // all of these fragments are in the shadow to determine the shadow contribution
+    // of the current fragment.
+    // So if 4 out of 9 fragments that we check are in the shadow then we'll say that
+    // this fragment is 4/9ths in the shadow so it'll be a little brighter than something
+    // that is 9/9ths in the shadow.
+    //for (int x = -1; x <= 1; x++) {
+    //    for (int y = -1; y <= 1; y++) {
+    //        float texelDepth = decodeFloat(texture2D(depthColorTexture, fragmentDepth.xy + vec2(x, y) * texelSize));
+    //        if (fragmentDepth.z < texelDepth) {
+    //          amountInLight += 1.0;
+    //        }
+    //    }
+    //}
+    amountInLight /= 9.0;
+
+    //Blin-Phong; Re-normalize vectors
     vec3 newN = normalize(N);
     vec3 toLight = normalize(positionToLight);
     vec4 veyepos = eyePosition;
@@ -78,5 +119,6 @@ void main() {
     }
 
     fColor = amb + diff + spec;
+    fColor = vec4(amountInLight * fColor);
     fColor.a = 1.0;
 }

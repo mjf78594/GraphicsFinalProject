@@ -127,7 +127,7 @@ window.onload = function init() {
     program = initShaders(gl, "vert-shader.glsl", "frag-shader.glsl");
     gl.useProgram(program);
 
-    lightPogram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
+    //lightPogram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
 
     //initialize uniforms from shader
     umv = gl.getUniformLocation(program, "mv");

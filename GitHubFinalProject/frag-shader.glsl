@@ -22,7 +22,6 @@ uniform highp vec4 spotlight_position;
 uniform highp vec4 spotlight_direction;
 uniform highp float cutoff;
 //uniform sampler2D depthColorTexture;
-//uniform vec3 uColor;
 
 //float decodeFloat(vec4 color) {
 //    const vec4 bitshift = vec4 (

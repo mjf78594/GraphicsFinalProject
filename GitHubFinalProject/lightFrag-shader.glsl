@@ -18,7 +18,7 @@ vec4 encodeFloat (float depth) {
   comp -= comp.xxyz * bitMask;
   return comp;
 }
-void main (void) {
+void main() {
   // Encode the distance into the scene of this fragment.
   // We'll later decode this when rendering from our camera's
   // perspective and use this number to know whether the fragment

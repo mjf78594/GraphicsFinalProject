@@ -114,6 +114,18 @@ var p0 = 0; //Control point index 0 is the starting P0
 var t = 0; //t is the free parameter
 var tstep = 0.2; //delta t
 
+//Variables for Shadows
+var uLightMV; //Light Model View matrix for camera shaders
+var uLightPoj;//Light projection matrix for camera shaders
+var uShadowMV; //Model View matrix for light shaders
+var uShadowProj; //Projection matrix for the light shaders
+
+var spotlightPosition; //The position of the spotlights
+var shadowFrameBuffer; //The frame buffer for the shadows
+var shadowRenderBuffer; //The render buffer for the shadows
+var shadowSampler; //The texture sampler for depth which is used to calculate the shadows
+var shadowDepthTexture; //The actual texture that records depth
+
 window.onload = function init() {
 
     //Set canvas reference for gl
@@ -126,8 +138,6 @@ window.onload = function init() {
     //initialize programs
     program = initShaders(gl, "vert-shader.glsl", "frag-shader.glsl");
     gl.useProgram(program);
-
-    //lightPogram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
 
     //initialize uniforms from shader
     umv = gl.getUniformLocation(program, "mv");
@@ -142,6 +152,9 @@ window.onload = function init() {
     spotlight_position = gl.getUniformLocation(program, "spotlight_position");
     spotlight_direction = gl.getUniformLocation(program, "spotlight_direction");
     cutoff = gl.getUniformLocation(program, "cutoff");
+    //uLightMV = gl.getUniformLocation(program, "lightMV");
+    //uLightPoj = gl.getUniformLocation(program, "ligthProj");
+    //shadowSampler = gl.getUniformLocation(program, "depthColorTexture");
 
     gl.uniform1f(cutoff, Math.cos(radians(20.0)));
 
@@ -365,6 +378,45 @@ window.onload = function init() {
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 48, 32);
     gl.enableVertexAttribArray(vNormal);
 
+    /////The rest of the onload function deals with shadows/////
+    // lightPogram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
+    // gl.useProgram(lightProgram);
+
+    // Initialize uniforms from light shader
+    // uShadowMV = gl.getUniformLocation(lightProgram, "mv");
+    // uShadowProj = gl.getUniformLocation(lightProgram, "proj");
+
+    // Set position
+    // var vPosition = gl.getAttribLocation(lightProgram, "vPosition");
+    // gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 48, 0);
+    // gl.enableVertexAttribArray(vPosition);
+
+    // Now we set up the additional buffers we will need as well as creating the shadowTexture
+    // shadowFrameBuffer = gl.createFrameBuffer();
+    // gl.bindFrameBuffer(gl.FRAMEBUFFER, shadowFrameBuffer);
+
+    // var shadowDepthTexture = gl.createTexture()
+    // gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture)
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+    //
+    // shadowRenderBuffer = gl.createRenderBuffer();
+    // gl.bindRenderbuffer(gl.RENDERBUFFER, shadowRenderBuffer);
+    // gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, canvas.width, canvas.height);
+    //
+    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowDepthTexture, 0);
+    // gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowRenderBuffer);
+    //
+    // gl.bindTexture(gl.TEXTURE_2D, null);
+    // gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    // gl.bindFrameBuffer(gl.FRAMEBUFFER, null);
+
+    // gl.useProgram(program);
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
+    // gl.uniform1i(samplerUniform, 0);
+
     window.setInterval(update, 16);
 }
 
@@ -405,6 +457,13 @@ function parseData(data) {
     var vNormal = gl.getAttribLocation(program, "vNormal");
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 48, 32);
     gl.enableVertexAttribArray(vNormal);
+
+    // gl.useProgram(lightProgram);
+    // //Set position
+    // var vPosition = gl.getAttribLocation(lightProgram, "vPosition");
+    // gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 48, 0);
+    // gl.enableVertexAttribArray(vPosition);
+    // gl.useProgram(program);
 }
 
 //This function updates the angles for movement

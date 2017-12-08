@@ -1,9 +1,6 @@
 #version 300 es
 precision mediump float;
 
-//varying vec2 vDepthUv;
-//varying vec4 shadowPos;
-
 in vec4 fSpecularColor;
 in float fSpecularExponent;
 in vec3 N;
@@ -11,6 +8,7 @@ in vec4 color;
 in vec3 positionToLight;
 in vec4 eyePosition;
 in vec3 eye;
+in vec4 shadowPos;
 
 out vec4  fColor;
 
@@ -21,28 +19,23 @@ uniform highp vec4 spotlight_color;
 uniform highp vec4 spotlight_position;
 uniform highp vec4 spotlight_direction;
 uniform highp float cutoff;
-//uniform sampler2D depthColorTexture;
-//uniform highp float shadowTextureSize;
+uniform sampler2D depthColorTexture;
+uniform highp float shadowTextureSize;
 
-//float decodeFloat(vec4 color) {
-//    const vec4 bitshift = vec4 (
-//        1.0 / (256.0 * 256.0 * 256.0),
-//        1.0 / (256.0 *256.0),
-//        1.0 / 256.0,
-//        1.0
-//    );
-//    return dot(color, bitShift);
-//}
+float decodeFloat(vec4 color) {
+    vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 *256.0), 1.0 / 256.0, 1.0);
+    return dot(color, bitShift);
+}
 
 
 
 void main() {
     ////This Portion is for the shadows;u uncomment when ready/////
-    //vec3 fragmentDepth = shadowPos.xyz;
-    //float shadowAcneRemover = 0.007;
-    //fragmentDepth.z -= shadowAcneRemover;
-    //float texelSize = 1.0/shadowTextureSize;
-    //float amountInLight = 0.0;
+    vec3 fragmentDepth = shadowPos.xyz;
+    float shadowAcneRemover = 0.007;
+    fragmentDepth.z -= shadowAcneRemover;
+    float texelSize = 1.0/shadowTextureSize;
+    float amountInLight = 0.0;
 
     // Check whether or not the current fragment and the 8 fragments surrounding
     // the current fragment are in the shadow. We then average out whether or not
@@ -51,15 +44,15 @@ void main() {
     // So if 4 out of 9 fragments that we check are in the shadow then we'll say that
     // this fragment is 4/9ths in the shadow so it'll be a little brighter than something
     // that is 9/9ths in the shadow.
-    //for (int x = -1; x <= 1; x++) {
-    //    for (int y = -1; y <= 1; y++) {
-    //        float texelDepth = decodeFloat(texture2D(depthColorTexture, fragmentDepth.xy + vec2(x, y) * texelSize));
-    //        if (fragmentDepth.z < texelDepth) {
-    //          amountInLight += 1.0;
-    //        }
-    //    }
-    //}
-    //amountInLight /= 9.0;
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float texelDepth = decodeFloat(texture(depthColorTexture, fragmentDepth.xy + vec2(x, y) * texelSize));
+            if (fragmentDepth.z < texelDepth) {
+              amountInLight += 1.0;
+            }
+        }
+    }
+    amountInLight /= 9.0;
 
     //Blin-Phong; Re-normalize vectors
     vec3 newN = normalize(N);
@@ -119,6 +112,6 @@ void main() {
     }
 
     fColor = amb + diff + spec;
-    //fColor = vec4(amountInLight * fColor);
+    fColor = vec4(amountInLight * fColor);
     fColor.a = 1.0;
 }

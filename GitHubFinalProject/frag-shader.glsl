@@ -22,6 +22,7 @@ uniform highp vec4 spotlight_position;
 uniform highp vec4 spotlight_direction;
 uniform highp float cutoff;
 //uniform sampler2D depthColorTexture;
+//uniform highp float shadowTextureSize;
 
 //float decodeFloat(vec4 color) {
 //    const vec4 bitshift = vec4 (
@@ -40,7 +41,7 @@ void main() {
     //vec3 fragmentDepth = shadowPos.xyz;
     //float shadowAcneRemover = 0.007;
     //fragmentDepth.z -= shadowAcneRemover;
-    //float texelSize = 1.0/1024.0;
+    //float texelSize = 1.0/shadowTextureSize;
     //float amountInLight = 0.0;
 
     // Check whether or not the current fragment and the 8 fragments surrounding

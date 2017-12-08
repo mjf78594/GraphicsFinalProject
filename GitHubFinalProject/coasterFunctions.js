@@ -3,7 +3,7 @@
 var gl;
 var canvas;
 var program;
-var lightPogram;
+var lightProgram;
 var bufferId;
 var mode; //Moving: 1 / Not moving : 0
 
@@ -116,15 +116,15 @@ var tstep = 0.2; //delta t
 
 //Variables for Shadows
 var uLightMV; //Light Model View matrix for camera shaders
-var uLightPoj;//Light projection matrix for camera shaders
+var uLightProj;//Light projection matrix for camera shaders
 var uShadowMV; //Model View matrix for light shaders
 var uShadowProj; //Projection matrix for the light shaders
 
-var spotlightPosition; //The position of the spotlights
 var shadowFrameBuffer; //The frame buffer for the shadows
 var shadowRenderBuffer; //The render buffer for the shadows
 var shadowSampler; //The texture sampler for depth which is used to calculate the shadows
 var shadowDepthTexture; //The actual texture that records depth
+var shadowTextureSize; //The size of the shadowTexture
 
 window.onload = function init() {
 
@@ -152,11 +152,13 @@ window.onload = function init() {
     spotlight_position = gl.getUniformLocation(program, "spotlight_position");
     spotlight_direction = gl.getUniformLocation(program, "spotlight_direction");
     cutoff = gl.getUniformLocation(program, "cutoff");
-    //uLightMV = gl.getUniformLocation(program, "lightMV");
-    //uLightPoj = gl.getUniformLocation(program, "ligthProj");
-    //shadowSampler = gl.getUniformLocation(program, "depthColorTexture");
+    uLightMV = gl.getUniformLocation(program, "lightMV");
+    uLightProj = gl.getUniformLocation(program, "lightProj");
+    shadowSampler = gl.getUniformLocation(program, "depthColorTexture");
+    shadowTextureSize = gl.getUniformLocation(program, "shadowDepthTextureSize");
 
     gl.uniform1f(cutoff, Math.cos(radians(20.0)));
+    gl.uniform1f(shadowTextureSize, 1024.0);
 
     redT = greenT = blueT = redT = whiteT = spotlight = false;
     cameraType = mode = 1; // Initialize motion, ambient light and viewPoint
@@ -343,7 +345,6 @@ window.onload = function init() {
     generateSphere(60, vec4(0.0, 1.0, 0.0, 1.0), lightGlobe); //Create a light source
     generateSphere(60, vec4(0.0, 0.0, 1.0, 1.0), lightGlobe); //Create a light source
     generateSphere(60, vec4(1.0, 1.0, 1.0, 1.0), lightGlobe); //Create a light source
-    //makeCube(4.0, -4.0, 4.0, 0.0, 2.0, -2.0, cartColors, cart); //Use this to make a cube cart
     generateSphere(60, vec4(0.8, 0.1, 0.5, 1.0), cart);
     makeWheels();
     makeCube(4.0, -4.0, 0.5, -0.5, 0.75, -0.75, trackColors, track);
@@ -380,43 +381,43 @@ window.onload = function init() {
     gl.enableVertexAttribArray(vNormal);
 
     /////The rest of the onload function deals with shadows/////
-    // lightPogram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
-    // gl.useProgram(lightProgram);
+    lightProgram = initShaders(gl, "lightVert-shader.glsl", "lightFrag-shader.glsl");
+    gl.useProgram(lightProgram);
 
-    // Initialize uniforms from light shader
-    // uShadowMV = gl.getUniformLocation(lightProgram, "mv");
-    // uShadowProj = gl.getUniformLocation(lightProgram, "proj");
+    //Initialize uniforms from light shader
+    uShadowMV = gl.getUniformLocation(lightProgram, "mv");
+    uShadowProj = gl.getUniformLocation(lightProgram, "proj");
 
-    // Set position
-    // var vPosition = gl.getAttribLocation(lightProgram, "vPosition");
-    // gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 48, 0);
-    // gl.enableVertexAttribArray(vPosition);
+    //Set position
+    var vPosition = gl.getAttribLocation(lightProgram, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 48, 0);
+    gl.enableVertexAttribArray(vPosition);
 
-    // Now we set up the additional buffers we will need as well as creating the shadowTexture
-    // shadowFrameBuffer = gl.createFrameBuffer();
-    // gl.bindFrameBuffer(gl.FRAMEBUFFER, shadowFrameBuffer);
+    //Now we set up the additional buffers we will need as well as creating the shadowTexture
+    shadowFrameBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFrameBuffer);
 
-    // var shadowDepthTexture = gl.createTexture()
-    // gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture)
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
-    //
-    // shadowRenderBuffer = gl.createRenderBuffer();
-    // gl.bindRenderbuffer(gl.RENDERBUFFER, shadowRenderBuffer);
-    // gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, canvas.width, canvas.height);
-    //
-    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowDepthTexture, 0);
-    // gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowRenderBuffer);
-    //
-    // gl.bindTexture(gl.TEXTURE_2D, null);
-    // gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    // gl.bindFrameBuffer(gl.FRAMEBUFFER, null);
+    shadowDepthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-    // gl.useProgram(program);
-    // gl.activeTexture(gl.TEXTURE0);
-    // gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
-    // gl.uniform1i(samplerUniform, 0);
+    shadowRenderBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, shadowRenderBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowTextureSize, shadowTextureSize);
+
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowDepthTexture, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowRenderBuffer);
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    gl.useProgram(program);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
+    gl.uniform1i(shadowSampler, 0);
 
     window.setInterval(update, 16);
 }
@@ -459,12 +460,12 @@ function parseData(data) {
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 48, 32);
     gl.enableVertexAttribArray(vNormal);
 
-    // gl.useProgram(lightProgram);
-    // //Set position
-    // var vPosition = gl.getAttribLocation(lightProgram, "vPosition");
-    // gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 48, 0);
-    // gl.enableVertexAttribArray(vPosition);
-    // gl.useProgram(program);
+    gl.useProgram(lightProgram);
+    //Set position
+    var vPosition = gl.getAttribLocation(lightProgram, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 48, 0);
+    gl.enableVertexAttribArray(vPosition);
+    gl.useProgram(program);
 }
 
 //This function updates the angles for movement
@@ -591,14 +592,17 @@ function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     ///////The first pass will be for the shadow map rendering/////////
-    // gl.useProgram(lightProgram);
-    // //Set perspective for light shader
-    // var lightp = ortho(-100, 100, -100, 100, -100, 100);
-    // gl.uniformMatrix4fv(uShadowProj, false, flatten(lightp));
-    //
-    // //Set ViewPoint for light shader
-    // var lightmv = lookAt(currentPoint, forwardPoint, vec3(0, 1, 0));
-    // gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
+    gl.useProgram(lightProgram);
+    //Set perspective for light shader
+    var lightp = ortho(-100, 100, -100, 100, -100, 100);
+    gl.uniformMatrix4fv(uShadowProj, false, flatten(lightp));
+
+    //Set ViewPoint for light shader
+    var lightmv = lookAt(currentPoint, forwardPoint, vec3(0, 1, 0));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
+
+    //Switch programs to do the camera drawing
+    gl.useProgram(program);
 
     //Set perspective for camera shader
     var p = perspective(zoom, canvas.width / canvas.height, 1.0, 425.0);
@@ -608,11 +612,11 @@ function render() {
     var mv = lookAt(lookingFrom, lookingAt, vec3(0, 1, 0));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
 
-    // //Set perspective for light shader
-    // gl.uniformMatrix4fv(uLightProj, false, flatten(lightp));
-    //
-    // //Set ViewPoint for light shader
-    // gl.uniformMatrix4fv(uLightMV, false, flatten(lightmv));
+    //Set perspective for light shader
+    gl.uniformMatrix4fv(uLightProj, false, flatten(lightp));
+
+    //Set ViewPoint for light shader
+    gl.uniformMatrix4fv(uLightMV, false, flatten(lightmv));
 
     //Make sure we have a way to get back to a designated reference matrix
     var commonMat = mv;
@@ -684,29 +688,346 @@ function render() {
     lightColors.push(whiteC);
     gl.uniform4fv(light_color, flatten(lightColors));
 
-    //drawShadows(commonMat);
+    drawShadows(commonMat);
     drawModels(commonMat);
 
 }
 
 //////////This function draws the shadows//////////
+//Since we are drawing shadows we do not need to set specular components, ambient light etc
+//So all that is included in the drawing portion is just the rotations and drawing calls
 function drawShadows(commonMat) {
     gl.useProgram(lightProgram);
 
     // Draw to our off screen drawing buffer
-    gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFrameBuffer);
 
     // Set the viewport to our shadow texture's size
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.viewport(0, 0, shadowTextureSize, shadowTextureSize);
     gl.clearColor(0.6, 0.8, 1.0, 1.0);
     gl.clearDepth(1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    
+    //placeholder is a counter keeping track of the starting index of where we are in the buffer.
+    var placeholder = 0;
 
+    ////Draw Ground////
+    gl.drawArrays(gl.TRIANGLES, 0, groundVertices);
+    placeholder += groundVertices;
+
+    ////Draw some pyramids/////
+    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+
+    var mv = commonMat;
+    mv = mult(mv, translate(30, -50, 30));
+    mv = mult(mv, rotateY(90));
+    mv = mult(mv, scalem(.5, .5, .5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(-30, -50, 30));
+    mv = mult(mv, rotateY(180));
+    mv = mult(mv, scalem(.5, .5, .5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(30, -50, -30));
+    mv = mult(mv, rotateY(270));
+    mv = mult(mv, scalem(.5, .5, .5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(-30, -50, -30));
+    mv = mult(mv, scalem(.5, .5, .5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    placeholder += pyramidVertices;
+
+    ///////Draw the light spheres///////
+    //Red Light
+    mv = commonMat;
+    mv = mult(mv, translate(95, 20, 95));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
+    placeholder += lightVerts/4;
+
+    //Green Light
+    mv = commonMat;
+    mv = mult(mv, translate(-95, 20, 95));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
+    placeholder += lightVerts/4;
+
+    //Blue Light
+    mv = commonMat;
+    mv = mult(mv, translate(-95, 20, -95));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
+    placeholder += lightVerts/4;
+
+    //White Light
+    mv = commonMat;
+    mv = mult(mv, translate(95, 20, -95));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, lightVerts/4);
+    placeholder += lightVerts/4;
+
+    //////Draw Cart//////
+    if(trackPoints.length > 0) {
+        //The Cart body
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, scalem(5.0, 2.5, 3.0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, cartVertices);
+
+        placeholder += cartVertices;
+
+        //////Rotate the wheels and Draw them//////
+        //Right front wheel
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(posX - 1.5, negY, posZ + depth));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        //Right back wheel
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(posX - 1.5, negY, -posZ - depth));
+        mv = mult(mv, scalem(xScale, yScale, -zScale, 1.0));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        //left back wheel
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(negX + 1.5, negY, - posZ - depth));
+        mv = mult(mv, scalem(xScale, yScale, -zScale, 1.0));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        //left front wheel
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(negX + 1.5, negY, posZ + depth));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        placeholder += wheelVertices + depthVertices;
+
+        //Draw the headlight
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(negX + 8.5, negY + 2.5, posZ - 2.0));
+        mv = mult(mv, scalem(.75, .75, .75));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, headVertices);
+
+        //Draw the rider
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(180));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(-headAngle));
+        mv = mult(mv, translate(negX + 4.0, negY + 5.5, posZ - 2.0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, headVertices);
+
+        placeholder += headVertices;
+
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(180));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(-headAngle));
+        mv = mult(mv, translate(negX + 3.2, negY + 5.7, posZ - 2.5));
+        mv = mult(mv, scalem(.15, .15, .15));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, eyeVertices);
+
+        mv = commonMat;
+        mv = mult(mv, movementMat);
+        mv = mult(mv, rotateY(180));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(-headAngle));
+        mv = mult(mv, translate(negX + 3.2, negY + 5.7, posZ - 1.5));
+        mv = mult(mv, scalem(.15, .15, .15));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, eyeVertices);
+
+        placeholder += eyeVertices;
+    } else {
+        //The Cart body
+        mv = commonMat;
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(xOffset, negY + 2.0, zOffset));
+        mv = mult(mv, scalem(5.0, 2.5, 3.0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, cartVertices);
+
+        placeholder += cartVertices;
+
+        //Right front wheel
+        mv = commonMat;
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(posX - 1.5, negY - 0.5, posZ + depth));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        //Right back wheel
+        mv = commonMat;
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(posX - 1.5, negY - 0.5, -posZ - depth));
+        mv = mult(mv, scalem(xScale, yScale, -zScale, 1.0));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        //left back wheel
+        mv = commonMat;
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(negX + 1.5, negY - 0.5, -posZ - depth));
+        mv = mult(mv, scalem(xScale, yScale, -zScale, 1.0));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        //left front wheel
+        mv = commonMat;
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, translate(negX + 1.5, negY - 0.5, posZ + depth));
+        mv = mult(mv, rotateZ(zAngle));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLE_FAN, placeholder, wheelVertices);
+        gl.drawArrays(gl.TRIANGLE_STRIP, placeholder + wheelVertices, depthVertices);
+
+        placeholder += wheelVertices + depthVertices;
+
+        //Draw the spotlight
+        mv = commonMat;
+        mv = mult(mv, rotateY(-90));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(headAngle));
+        mv = mult(mv, translate(xOffset, negY + 2.0, zOffset - 4.5));
+        mv = mult(mv, scalem(.75, .75, .75));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, headVertices);
+
+        //Draw the rider
+        mv = commonMat;
+        mv = mult(mv, rotateY(-90));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(headAngle));
+        mv = mult(mv, translate(xOffset, negY + 5.5, zOffset));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, headVertices);
+
+        placeholder += headVertices;
+
+        mv = commonMat;
+        mv = mult(mv, rotateY(-90));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(headAngle));
+        mv = mult(mv, translate(negX + 4.5, negY + 5.7, posZ - 2.8));
+        mv = mult(mv, scalem(.15, .15, .15));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, eyeVertices);
+
+        mv = commonMat;
+        mv = mult(mv, rotateY(-90));
+        mv = mult(mv, rotateY(yAngle));
+        mv = mult(mv, rotateY(headAngle));
+        mv = mult(mv, translate(negX + 3.5, negY + 5.7, posZ - 2.8));
+        mv = mult(mv, scalem(.15, .15, .15));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+        gl.drawArrays(gl.TRIANGLES, placeholder, eyeVertices);
+    }
+
+    if(trackPoints.length > 0) {
+        for(var i = 0; i < trackPoints.length; i++) {
+            //Calculate the orientations
+            var xOrient;
+            var yOrient;
+            var zOrient;
+            if (i === trackPoints.length - 1) {
+                xOrient = trackPoints[0][0] - trackPoints[i][0];
+                yOrient = trackPoints[0][1] - trackPoints[i][1];
+                zOrient = trackPoints[0][2] - trackPoints[i][2];
+            } else {
+                xOrient = trackPoints[i + 1][0] - trackPoints[i][0];
+                yOrient = trackPoints[i + 1][1] - trackPoints[i][1];
+                zOrient = trackPoints[i + 1][2] - trackPoints[i][2];
+            }
+
+            //Set the side and forward vectors
+            var up = vec4(0, 1, 0, 0);
+            var forward = vec4(xOrient, yOrient, zOrient, 0);
+
+            //Take the cross product to get the perpendicular vector
+            var perp = cross(normalize(forward), normalize(up));
+            var side = vec4(perp, 0.0);
+
+            //Make sure up is perpendicular
+            perp = cross(normalize(side), normalize(forward));
+            up = vec4(perp, 0.0);
+
+            //Make sure forward is normalized
+            perp = cross(normalize(up), normalize(side));
+            forward = vec4(perp, 0.0);
+
+            var origin = vec4(trackPoints[i][0], trackPoints[i][1] - 90, trackPoints[i][2], 1.0);
+
+            var orientMat = mat4(side, up, forward, origin);
+            orientMat = transpose(orientMat);
+
+            //Draw the track boards based on new orientation
+            mv = commonMat;
+            mv = mult(mv, orientMat);
+            gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+            gl.drawArrays(gl.TRIANGLES, placeholder, trackVertices);
+            //Draw the left rails
+            mv = mult(mv, translate(2.0, yOffset, zOffset));
+            gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+            gl.drawArrays(gl.TRIANGLES, placeholder + trackVertices, railVertices);
+            //Draw the right rails
+            mv = mult(mv, translate(-4.0, yOffset, zOffset));
+            gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+            gl.drawArrays(gl.TRIANGLES, placeholder + trackVertices, railVertices);
+        }
+    }
+
+    //Remember to reset the framebuffer
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
 ///////////Drawing the models takes place here ///////////////
+//Since we are drawing everything in color this draw is normal with all of the specular code included
 function drawModels(commonMat) {
     gl.useProgram(program);
     //placeholder is a counter keeping track of the starting index of where we are in the buffer.

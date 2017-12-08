@@ -163,6 +163,7 @@ window.onload = function init() {
     savedZoom = zoom = 45;
     savedDolly = dolly = 325;
     currentPoint = lookingAt = vec3(0.0, 0.0, 0.0); //X, Y, Z points for the camera to look at
+    forwardPoint = vec3(-1.0, 1.0, -8.0);
     forwardVector = normalize(vec4(-1.0, 1.0, - 8.0, 0.0));
     lookingFrom = vec3(0.0, 0.0, dolly); //Point the camera is looking from
     freeRoam = 0;
@@ -589,13 +590,29 @@ function update() {
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    //Set perspective
+    ///////The first pass will be for the shadow map rendering/////////
+    // gl.useProgram(lightProgram);
+    // //Set perspective for light shader
+    // var lightp = ortho(-100, 100, -100, 100, -100, 100);
+    // gl.uniformMatrix4fv(uShadowProj, false, flatten(lightp));
+    //
+    // //Set ViewPoint for light shader
+    // var lightmv = lookAt(currentPoint, forwardPoint, vec3(0, 1, 0));
+    // gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
+
+    //Set perspective for camera shader
     var p = perspective(zoom, canvas.width / canvas.height, 1.0, 425.0);
     gl.uniformMatrix4fv(uproj, false, flatten(p));
 
-    //Set ViewPoint
+    //Set ViewPoint for camera shader
     var mv = lookAt(lookingFrom, lookingAt, vec3(0, 1, 0));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
+
+    // //Set perspective for light shader
+    // gl.uniformMatrix4fv(uLightProj, false, flatten(lightp));
+    //
+    // //Set ViewPoint for light shader
+    // gl.uniformMatrix4fv(uLightMV, false, flatten(lightmv));
 
     //Make sure we have a way to get back to a designated reference matrix
     var commonMat = mv;
@@ -667,8 +684,31 @@ function render() {
     lightColors.push(whiteC);
     gl.uniform4fv(light_color, flatten(lightColors));
 
+    //drawShadows(commonMat);
+    drawModels(commonMat);
 
-    ///////////Drawing begins here ///////////////
+}
+
+//////////This function draws the shadows//////////
+function drawShadows(commonMat) {
+    gl.useProgram(lightProgram);
+
+    // Draw to our off screen drawing buffer
+    gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer)
+
+    // Set the viewport to our shadow texture's size
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.6, 0.8, 1.0, 1.0);
+    gl.clearDepth(1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    
+
+}
+
+///////////Drawing the models takes place here ///////////////
+function drawModels(commonMat) {
+    gl.useProgram(program);
     //placeholder is a counter keeping track of the starting index of where we are in the buffer.
     var placeholder = 0;
 
@@ -688,7 +728,7 @@ function render() {
 
     gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
 
-    mv = commonMat;
+    var mv = commonMat;
     mv = mult(mv, translate(30, -50, 30));
     mv = mult(mv, rotateY(90));
     mv = mult(mv, scalem(.5, .5, .5));

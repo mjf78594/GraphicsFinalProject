@@ -15,7 +15,6 @@ var redT;
 var greenT;
 var blueT;
 var whiteT;
-var spotlight;
 
 var lookingFrom; //Where the camera is pointing from
 var lookingAt; //Where the camera is pointing to
@@ -125,6 +124,7 @@ var shadowRenderBuffer; //The render buffer for the shadows
 var shadowSampler; //The texture sampler for depth which is used to calculate the shadows
 var shadowDepthTexture; //The actual texture that records depth
 var shadowTextureSize; //The size of the shadowTexture
+var ushadowTextureSize; //The uniform that gets passed into the shader
 
 window.onload = function init() {
 
@@ -155,17 +155,18 @@ window.onload = function init() {
     uLightMV = gl.getUniformLocation(program, "lightMV");
     uLightProj = gl.getUniformLocation(program, "lightProj");
     shadowSampler = gl.getUniformLocation(program, "depthColorTexture");
-    shadowTextureSize = gl.getUniformLocation(program, "shadowDepthTextureSize");
+    ushadowTextureSize = gl.getUniformLocation(program, "shadowDepthTextureSize");
 
     gl.uniform1f(cutoff, Math.cos(radians(20.0)));
-    gl.uniform1f(shadowTextureSize, 1024.0);
+    gl.uniform1f(ushadowTextureSize, 768.0);
+    shadowTextureSize = 768.0;
 
-    redT = greenT = blueT = redT = whiteT = spotlight = false;
+    redT = greenT = blueT = redT = whiteT = false;
     cameraType = mode = 1; // Initialize motion, ambient light and viewPoint
     savedZoom = zoom = 45;
     savedDolly = dolly = 325;
     currentPoint = lookingAt = vec3(0.0, 0.0, 0.0); //X, Y, Z points for the camera to look at
-    forwardPoint = vec3(-1.0, 1.0, -8.0);
+    forwardPoint = vec3(1.0, 0.0, 0.0);
     forwardVector = normalize(vec4(-1.0, 1.0, - 8.0, 0.0));
     lookingFrom = vec3(0.0, 0.0, dolly); //Point the camera is looking from
     freeRoam = 0;
@@ -312,9 +313,6 @@ window.onload = function init() {
             case "4":
                 whiteT = !whiteT;
                 break;
-            case "5":
-                spotlight = !spotlight;
-                break;
         }
         requestAnimationFrame(render);
     });
@@ -419,7 +417,7 @@ window.onload = function init() {
     gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
     gl.uniform1i(shadowSampler, 0);
 
-    window.setInterval(update, 16);
+    window.setInterval(update, 8);
 }
 
 //Resets the zoom and dolly
@@ -500,7 +498,7 @@ function update() {
             yOr2 = points[2][1] - points[1][1];
             zOr2 = points[2][2] - points[1][2];
 
-            forwardPoint = vec3(points[1][0]*(1.0-t) + t*points[2][0], points[1][1]*(1.0-t) + t*points[2][1] - 88, points[1][2]*(1.0-t) + t*points[2][2]);
+            forwardPoint = vec3(points[1][0]*(1.0-t) + t*points[2][0], points[1][1]*(1.0-t) + t*points[2][1] - 85.5, points[1][2]*(1.0-t) + t*points[2][2]);
 
             //Set the side and forward vectors
             var up = vec4(0, 1, 0, 0);
@@ -589,8 +587,6 @@ function update() {
 }
 
 function render() {
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
     ///////The first pass will be for the shadow map rendering/////////
     gl.useProgram(lightProgram);
     //Set perspective for light shader
@@ -658,11 +654,7 @@ function render() {
     }
 
     /////Set The Light Colors/////
-    var sLightC = vec4(0.0, 0.0, 0.0, 1.0);
-    if(spotlight) {
-        sLightC = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-    gl.uniform4fv(spotlight_color, flatten(sLightC));
+    gl.uniform4fv(spotlight_color, flatten(vec4(1.0, 1.0, 1.0, 1.0)));
 
     //The array of light colors for the floating lights
     var lightColors = [];
@@ -672,15 +664,26 @@ function render() {
     var whiteC = vec4(0.0, 0.0, 0.0, 1.0);
     if(greenT) {
         greenC = vec4(0, 0, .4, 1.0);
+        //Set ViewPoint for light shader
+        var lightmv = lookAt(vec3(-95, 15, -95), vec3(0, 0, 0), vec3(0, 1, 0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     if(redT) {
         redC = vec4(.4, 0, 0, 1.0);
+        //Set ViewPoint for light shader
+        var lightmv = lookAt(vec3(95, 15, 95), vec3(0, 0, 0), vec3(0, 1, 0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     if(blueT) {
         blueC = vec4(0, .4, 0, 1.0);
+        //Set ViewPoint for light shader
+        var lightmv = lookAt(vec3(-95, 15, 95), vec3(0, 0, 0), vec3(0, 1, 0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     if(whiteT) {
-        whiteC = vec4(.4, .4, .4, 1.0);
+        whiteC = vec4(.4, .4, .4, 1.0);//Set ViewPoint for light shader
+        var lightmv = lookAt(vec3(95, 15, -95), vec3(0, 0, 0), vec3(0, 1, 0));
+        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     lightColors.push(greenC);
     lightColors.push(redC);
@@ -690,7 +693,6 @@ function render() {
 
     drawShadows(commonMat);
     drawModels(commonMat);
-
 }
 
 //////////This function draws the shadows//////////
@@ -1030,6 +1032,8 @@ function drawShadows(commonMat) {
 //Since we are drawing everything in color this draw is normal with all of the specular code included
 function drawModels(commonMat) {
     gl.useProgram(program);
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     //placeholder is a counter keeping track of the starting index of where we are in the buffer.
     var placeholder = 0;
 

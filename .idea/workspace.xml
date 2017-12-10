@@ -17,8 +17,18 @@
       <file leaf-file-name="coasterFunctions.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterFunctions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="571">
-              <caret line="694" column="26" lean-forward="false" selection-start-line="694" selection-start-column="26" selection-end-line="694" selection-end-column="26" />
+            <state relative-caret-position="1080">
+              <caret line="580" column="58" lean-forward="false" selection-start-line="580" selection-start-column="58" selection-end-line="580" selection-end-column="58" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tutorial.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/CodeAlongs/ShadowMappingTutorial/tutorial.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1993">
+              <caret line="387" column="18" lean-forward="false" selection-start-line="387" selection-start-column="8" selection-end-line="387" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -105,6 +115,7 @@
       <find>framebuffer</find>
       <find>shadowTextureSize</find>
       <find>spotlight</find>
+      <find>dragonMode</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -152,6 +163,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -169,12 +181,11 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/Projects/Project5/fshader-clouds.glsl" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/CodeAlongs/ShadowMappingTutorial/tutorial.js" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
     <property name="nodejs_interpreter_path" value="C:/Program Files/nodejs/node" />
@@ -217,12 +228,13 @@
       <workItem from="1512693137157" duration="3011000" />
       <workItem from="1512756460161" duration="4669000" />
       <workItem from="1512772226095" duration="1879000" />
-      <workItem from="1512791159490" duration="4378000" />
+      <workItem from="1512791159490" duration="4446000" />
+      <workItem from="1512938863242" duration="2923000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="39639000" />
+    <option name="totallyTimeSpent" value="42630000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-16" y="-16" width="3232" height="1732" extended-state="6" />
@@ -558,14 +570,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/CodeAlongs/ShadowMappingTutorial/tutorial.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="13760">
-          <caret line="344" column="3" lean-forward="false" selection-start-line="344" selection-start-column="3" selection-end-line="351" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GitHubFinalProject/geometryCreationFunctions.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-11297">
@@ -619,6 +623,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/CodeAlongs/ShadowMappingTutorial/tutorial.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1993">
+          <caret line="387" column="18" lean-forward="false" selection-start-line="387" selection-start-column="8" selection-end-line="387" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterIndex.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="640">
@@ -629,8 +641,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterFunctions.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="571">
-          <caret line="694" column="26" lean-forward="false" selection-start-line="694" selection-start-column="26" selection-end-line="694" selection-end-column="26" />
+        <state relative-caret-position="1080">
+          <caret line="580" column="58" lean-forward="false" selection-start-line="580" selection-start-column="58" selection-end-line="580" selection-end-column="58" />
           <folding />
         </state>
       </provider>

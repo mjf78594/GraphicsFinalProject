@@ -119,6 +119,9 @@ var uLightProj;//Light projection matrix for camera shaders
 var uShadowMV; //Model View matrix for light shaders
 var uShadowProj; //Projection matrix for the light shaders
 
+var lightLookingFrom;
+var lightLookingAt;
+
 var shadowFrameBuffer; //The frame buffer for the shadows
 var shadowRenderBuffer; //The render buffer for the shadows
 var shadowSampler; //The texture sampler for depth which is used to calculate the shadows
@@ -165,8 +168,8 @@ window.onload = function init() {
     cameraType = mode = 1; // Initialize motion, ambient light and viewPoint
     savedZoom = zoom = 45;
     savedDolly = dolly = 325;
-    currentPoint = lookingAt = vec3(0.0, 0.0, 0.0); //X, Y, Z points for the camera to look at
-    forwardPoint = vec3(1.0, 0.0, 0.0);
+    currentPoint = lightLookingFrom = lookingAt = vec3(0.0, 0.0, 0.0); //X, Y, Z points for the camera to look at
+    forwardPoint = lightLookingAt = vec3(1.0, 0.0, 0.0);
     forwardVector = normalize(vec4(-1.0, 1.0, - 8.0, 0.0));
     lookingFrom = vec3(0.0, 0.0, dolly); //Point the camera is looking from
     freeRoam = 0;
@@ -417,7 +420,7 @@ window.onload = function init() {
     gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
     gl.uniform1i(shadowSampler, 0);
 
-    window.setInterval(update, 8);
+    window.setInterval(update, 16);
 }
 
 //Resets the zoom and dolly
@@ -572,6 +575,12 @@ function update() {
                 lookingFrom = add(lookingFrom, vec3(scale(7, up)));
                 lookingAt = add(currentPoint, vec3(scale(6, up)));
             }
+
+            // Just like the camera lookingFrom ad LookaingAt, //
+            // we need to model this with our spotlightPosition on the cart //
+            lightLookingFrom = add(currentPoint,  vec3(up));
+            lightLookingFrom = add(lightLookingFrom, vec3(scale(2, forward)));
+            lightLookingAt = forwardPoint;
         }
     }
     if(cameraType === 1 && freeRoam === 1) {
@@ -594,12 +603,12 @@ function render() {
     gl.uniformMatrix4fv(uShadowProj, false, flatten(lightp));
 
     //Set ViewPoint for light shader
-    var lightmv = lookAt(currentPoint, forwardPoint, vec3(0, 1, 0));
+    var lightmv = lookAt(lightLookingFrom, lightLookingAt, vec3(0, 1, 0));
     gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
+
 
     //Switch programs to do the camera drawing
     gl.useProgram(program);
-
     //Set perspective for camera shader
     var p = perspective(zoom, canvas.width / canvas.height, 1.0, 425.0);
     gl.uniformMatrix4fv(uproj, false, flatten(p));
@@ -664,26 +673,15 @@ function render() {
     var whiteC = vec4(0.0, 0.0, 0.0, 1.0);
     if(greenT) {
         greenC = vec4(0, 0, .4, 1.0);
-        //Set ViewPoint for light shader
-        var lightmv = lookAt(vec3(-95, 15, -95), vec3(0, 0, 0), vec3(0, 1, 0));
-        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     if(redT) {
         redC = vec4(.4, 0, 0, 1.0);
-        //Set ViewPoint for light shader
-        var lightmv = lookAt(vec3(95, 15, 95), vec3(0, 0, 0), vec3(0, 1, 0));
-        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     if(blueT) {
         blueC = vec4(0, .4, 0, 1.0);
-        //Set ViewPoint for light shader
-        var lightmv = lookAt(vec3(-95, 15, 95), vec3(0, 0, 0), vec3(0, 1, 0));
-        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
     }
     if(whiteT) {
-        whiteC = vec4(.4, .4, .4, 1.0);//Set ViewPoint for light shader
-        var lightmv = lookAt(vec3(95, 15, -95), vec3(0, 0, 0), vec3(0, 1, 0));
-        gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
+        whiteC = vec4(.4, .4, .4, 1.0);
     }
     lightColors.push(greenC);
     lightColors.push(redC);
@@ -691,7 +689,7 @@ function render() {
     lightColors.push(whiteC);
     gl.uniform4fv(light_color, flatten(lightColors));
 
-    drawShadows(commonMat);
+    drawShadows(lightmv);
     drawModels(commonMat);
 }
 

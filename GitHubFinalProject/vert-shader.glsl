@@ -19,9 +19,20 @@ out vec3 H4;
 out vec3 positionToLight;
 out vec4 eyePosition;
 out vec3 eye;
+out vec4 sShadowPos;
+out vec4 rShadowPos;
+out vec4 gShadowPos;
+out vec4 bShadowPos;
+out vec4 wShadowPos;
 
 uniform mat4 mv;
 uniform mat4 proj;
+uniform mat4 sLightMV;
+uniform mat4 rLightMV;
+uniform mat4 gLightMV;
+uniform mat4 bLightMV;
+uniform mat4 wLightMV;
+uniform mat4 lightProj;
 uniform vec4 light_position[4]; //A location in space
 uniform vec4 light_color[4];
 uniform vec4 ambient_light;
@@ -31,6 +42,11 @@ uniform vec4 spotlight_direction;
 uniform float cutoff;
 uniform float t;
 uniform vec2 controlPoints[4];
+
+// Used to normalize our coordinates from clip space to (0 - 1)
+// so that we can access the corresponding point in our depth color texture
+const mat4 texUnitConverter = mat4(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0);
+
 
 void main() {
     vec4 veyepos = mv * vPosition; //vertex position in eyespace
@@ -45,6 +61,11 @@ void main() {
     vec3 normal = normalize(mv * vNormal).xyz;
 
     gl_Position = proj * veyepos;
+    sShadowPos = texUnitConverter * lightProj * sLightMV * vPosition;
+    rShadowPos = texUnitConverter * lightProj * rLightMV * vPosition;
+    gShadowPos = texUnitConverter * lightProj * gLightMV * vPosition;
+    bShadowPos = texUnitConverter * lightProj * bLightMV * vPosition;
+    wShadowPos = texUnitConverter * lightProj * wLightMV * vPosition;
 
     N = normal;
     eye = E;

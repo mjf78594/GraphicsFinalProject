@@ -32,69 +32,6 @@ function makeLandscape() {
     groundVertices +=6;
 }
 
-//This function produces the points for a pyramid (just a fun add on)
-function makePyramid() {
-    var bRightX = 15.0;
-    var bLeftX = -15.0;
-    var bUpY = -60;
-    var bDownY = -100.0;
-    var bCloseZ = 15.0;
-    var bFarZ = -15.0;
-
-    var normalRight = vec4(normalize(cross(normalize(subtract(vec4(bRightX, bDownY, bFarZ, 1.0), vec4(0, bUpY, 0, 1.0))), normalize(subtract(vec4(bRightX, bDownY, bCloseZ, 1.0), vec4(0, bUpY, 0, 1.0))))), 0.0);
-    var normalLeft = vec4(normalize(cross(normalize(subtract(vec4(bLeftX, bDownY, bFarZ, 1.0), vec4(0, bUpY, 0, 1.0))), normalize(subtract(vec4(bLeftX, bDownY, bCloseZ, 1.0), vec4(0, bUpY, 0, 1.0))))), 0.0);
-    var normalBack = vec4(normalize(cross(normalize(subtract(vec4(bLeftX, bDownY, bFarZ, 1.0), vec4(0, bUpY, 0, 1.0))), normalize(subtract(vec4(bRightX, bDownY, bFarZ, 1.0), vec4(0, bUpY, 0, 1.0))))), 0.0);
-    var normalFront = vec4(normalize(cross(normalize(subtract(vec4(bLeftX, bDownY, bCloseZ, 1.0), vec4(0, bUpY, 0, 1.0))), normalize(subtract(vec4(bRightX, bDownY, bCloseZ, 1.0), vec4(0, bUpY, 0, 1.0))))), 0.0);
-
-
-    //left face of pyramid
-    pyramid.push(vec4(bLeftX, bDownY, bFarZ, 1.0)); //Position
-    pyramid.push(vec4(0.6, 0.0, 0.9, 1.0));//Purple
-    pyramid.push(normalLeft); //Normal vector
-    pyramid.push(vec4(bLeftX, bDownY, bCloseZ, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.0, 0.9, 1.0));//Purple
-    pyramid.push(normalLeft); //Normal vector
-    pyramid.push(vec4(0, bUpY, 0, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.0, 0.9, 1.0));//Purple
-    pyramid.push(normalLeft); //Normal vector
-
-    //Right face of pyramid
-    pyramid.push(vec4(bRightX, bDownY, bFarZ, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.1, 0.3, 1.0)); //maroon
-    pyramid.push(normalRight); //Normal vector
-    pyramid.push(vec4(bRightX, bDownY, bCloseZ, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.1, 0.3, 1.0)); //maroon
-    pyramid.push(normalRight); //Normal vector
-    pyramid.push(vec4(0, bUpY, 0, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.1, 0.3, 1.0)); //maroon
-    pyramid.push(normalRight); //Normal vector
-
-    //Front face of pyramid
-    pyramid.push(vec4(bLeftX, bDownY, bCloseZ, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.7, 0.1, 1.0));//Tan
-    pyramid.push(normalFront); //Normal vector
-    pyramid.push(vec4(bRightX, bDownY, bCloseZ, 1.0));//Position
-    pyramid.push(vec4(0.6, .7, 0.1, 1.0));//Tan
-    pyramid.push(normalFront); //Normal vector
-    pyramid.push(vec4(0, bUpY, 0, 1.0));//Position
-    pyramid.push(vec4(0.6, 0.7, 0.1, 1.0));//Tan
-    pyramid.push(normalFront); //Normal vector
-
-    //Back face of pyramid
-    pyramid.push(vec4(bLeftX, bDownY, bFarZ, 1.0));//Position
-    pyramid.push(vec4(0.3, 0.7, 0.8, 1.0));//Slate blue
-    pyramid.push(normalBack); //Normal vector
-    pyramid.push(vec4(bRightX, bDownY, bFarZ, 1.0));//Position
-    pyramid.push(vec4(0.3, .7, 0.8, 1.0));//Slate blue
-    pyramid.push(normalBack); //Normal vector
-    pyramid.push(vec4(0, bUpY, 0, 1.0));//Position
-    pyramid.push(vec4(0.3, 0.7, 0.8, 1.0));//Slate blue
-    pyramid.push(normalBack); //Normal vector
-
-    pyramidVertices +=12;
-}
-
-
 //this function creates a 3D cube/box/rectangle
 function makeCube(highX, lowX, highY, lowY, highZ, lowZ, colors, array) {
     //vec4's alternate between vertex and color
@@ -223,6 +160,8 @@ function makeCube(highX, lowX, highY, lowY, highZ, lowZ, colors, array) {
         trackVertices += 36;
     } else if(array === rails) {
         railVertices += 36;
+    } else if(array === cubes) {
+        cubeVertices += 36;
     }
 
 }
@@ -305,6 +244,8 @@ function generateSphere(subdiv, color, array) {
                 cartVertices += 6;
             } else if (array === lightGlobe) {
                 lightVerts += 6;
+            } else if (array === alphaSpheres) {
+                alphaSphereVertices += 6;
             }
         }
     }

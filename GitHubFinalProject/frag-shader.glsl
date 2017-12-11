@@ -8,6 +8,11 @@ in vec4 color;
 in vec3 positionToLight;
 in vec4 eyePosition;
 in vec3 eye;
+in vec4 sShadowPos;
+in vec4 rShadowPos;
+in vec4 gShadowPos;
+in vec4 bShadowPos;
+in vec4 wShadowPos;
 
 out vec4  fColor;
 
@@ -18,9 +23,45 @@ uniform highp vec4 spotlight_color;
 uniform highp vec4 spotlight_position;
 uniform highp vec4 spotlight_direction;
 uniform highp float cutoff;
+uniform sampler2D spotlightDepthMap;
+uniform sampler2D rLightDepthMap;
+uniform sampler2D gLightDepthMap;
+uniform sampler2D bLightDepthMap;
+uniform sampler2D wLightDepthMap;
+uniform highp float shadowTextureSize;
+
+float decodeFloat(vec4 color) {
+    vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 *256.0), 1.0 / 256.0, 1.0);
+    return dot(color, bitShift);
+}
+
+float amountInLight(sampler2D depthMap, vec4 shadowPos) {
+    vec3 fragmentDepth = shadowPos.xyz;
+    float shadowAcneRemover = 0.007;
+    fragmentDepth.z -= shadowAcneRemover;
+    float texelSize = 1.0/shadowTextureSize;
+    float amountInLight = 0.0;
+
+    // Check whether or not the current fragment and the 8 fragments surrounding
+    // the current fragment are in the shadowMap. We then average out whether or not
+    // all of these fragments are in the shadow to determine the shadow contribution
+    // of the current fragment.
+    // So if 4 out of 9 fragments that we check are in the shadow then we'll say that
+    // this fragment is 4/9ths in the shadow so it'll be a little brighter than something
+    // that is 9/9ths in the shadow.
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float texelDepth = decodeFloat(texture(depthMap, fragmentDepth.xy + vec2(x, y) * texelSize));
+            if (fragmentDepth.z < texelDepth) {
+              amountInLight += 1.0;
+            }
+        }
+    }
+    return amountInLight /= 9.0;
+}
 
 void main() {
-    //Re-normalize
+    //Blin-Phong; Re-normalize vectors
     vec3 newN = normalize(N);
     vec3 toLight = normalize(positionToLight);
     vec4 veyepos = eyePosition;
@@ -45,36 +86,36 @@ void main() {
 
     bool isLit = max(dot(vec3(spotlight_direction), -sLight), 0.0) > cutoff;
 
-    vec4 diff1 = max(dot(L1, newN), 0.0) * color * light_color[0];
-    vec4 diff2 = max(dot(L2, newN), 0.0) * color * light_color[1];
-    vec4 diff3 = max(dot(L3, newN), 0.0) * color * light_color[2];
-    vec4 diff4 = max(dot(L4, newN), 0.0) * color * light_color[3];
+    vec4 diff1 = max(dot(L1, newN), 0.0) * color * light_color[0] * amountInLight(rLightDepthMap, rShadowPos);
+    vec4 diff2 = max(dot(L2, newN), 0.0) * color * light_color[1] * amountInLight(gLightDepthMap, gShadowPos);
+    vec4 diff3 = max(dot(L3, newN), 0.0) * color * light_color[2] * amountInLight(bLightDepthMap, bShadowPos);
+    vec4 diff4 = max(dot(L4, newN), 0.0) * color * light_color[3] * amountInLight(wLightDepthMap, wShadowPos);
 
     vec4 diff = diff1 + diff2 + diff3 + diff4;
     if(isLit) {
-        diff += max(dot(sLight, newN), 0.0) * color * spotlight_color;
+        diff += vec4(max(dot(sLight, newN), 0.0) * color * spotlight_color  * amountInLight(spotlightDepthMap, sShadowPos));
     }
 
-    vec4 spec1 = fSpecularColor * light_color[0] * pow(max(dot(newN, H1), 0.0), fSpecularExponent);
+    vec4 spec1 = fSpecularColor * light_color[0] * pow(max(dot(newN, H1), 0.0), fSpecularExponent) * amountInLight(rLightDepthMap, rShadowPos);
     if(dot(L1, newN) < 0.0) { //Backside of object (Only needs to be checked in bling-phong, not regular bling)
         spec1 = vec4(0,0,0,1);
     }
-    vec4 spec2 = fSpecularColor * light_color[1] * pow(max(dot(newN, H2), 0.0), fSpecularExponent);
+    vec4 spec2 = fSpecularColor * light_color[1] * pow(max(dot(newN, H2), 0.0), fSpecularExponent) * amountInLight(gLightDepthMap, gShadowPos);
     if(dot(L2, newN) < 0.0) { //Backside of object (Only needs to be checked in bling-phong, not regular bling)
         spec2 = vec4(0,0,0,1);
     }
-    vec4 spec3 = fSpecularColor * light_color[2] * pow(max(dot(newN, H3), 0.0), fSpecularExponent);
+    vec4 spec3 = fSpecularColor * light_color[2] * pow(max(dot(newN, H3), 0.0), fSpecularExponent) * amountInLight(bLightDepthMap, bShadowPos);
     if(dot(L3, newN) < 0.0) { //Backside of object (Only needs to be checked in bling-phong, not regular bling)
         spec3 = vec4(0,0,0,1);
     }
-    vec4 spec4 = fSpecularColor * light_color[3] * pow(max(dot(newN, H4), 0.0), fSpecularExponent);
+    vec4 spec4 = fSpecularColor * light_color[3] * pow(max(dot(newN, H4), 0.0), fSpecularExponent) * amountInLight(wLightDepthMap, wShadowPos);
     if(dot(L4, newN) < 0.0) { //Backside of object (Only needs to be checked in bling-phong, not regular bling)
         spec4 = vec4(0,0,0,1);
     }
 
     vec4 spec = spec1 + spec2 + spec3 + spec4;
     if(isLit) {
-        spec += fSpecularColor * spotlight_color * pow(max(dot(newN, sLightH), 0.0), fSpecularExponent);
+        spec += vec4(fSpecularColor * spotlight_color * pow(max(dot(newN, sLightH), 0.0), fSpecularExponent) * amountInLight(spotlightDepthMap, sShadowPos));
     }
 
     fColor = amb + diff + spec;

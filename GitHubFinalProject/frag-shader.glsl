@@ -19,7 +19,11 @@ uniform highp vec4 spotlight_color;
 uniform highp vec4 spotlight_position;
 uniform highp vec4 spotlight_direction;
 uniform highp float cutoff;
-uniform sampler2D depthColorTexture;
+uniform sampler2D spotlightDepthMap;
+uniform sampler2D rLightDepthMap;
+uniform sampler2D gLightDepthMap;
+uniform sampler2D bLightDepthMap;
+uniform sampler2D wLightDepthMap;
 uniform highp float shadowTextureSize;
 
 float decodeFloat(vec4 color) {
@@ -27,10 +31,7 @@ float decodeFloat(vec4 color) {
     return dot(color, bitShift);
 }
 
-
-
-void main() {
-    ////This Portion is for the shadows;u uncomment when ready/////
+float amountInLight(sampler2D depthMap) {
     vec3 fragmentDepth = shadowPos.xyz;
     float shadowAcneRemover = 0.007;
     fragmentDepth.z -= shadowAcneRemover;
@@ -38,7 +39,7 @@ void main() {
     float amountInLight = 0.0;
 
     // Check whether or not the current fragment and the 8 fragments surrounding
-    // the current fragment are in the shadow. We then average out whether or not
+    // the current fragment are in the shadowMap. We then average out whether or not
     // all of these fragments are in the shadow to determine the shadow contribution
     // of the current fragment.
     // So if 4 out of 9 fragments that we check are in the shadow then we'll say that
@@ -46,14 +47,16 @@ void main() {
     // that is 9/9ths in the shadow.
     for (int x = -1; x <= 1; x++) {
         for (int y = -1; y <= 1; y++) {
-            float texelDepth = decodeFloat(texture(depthColorTexture, fragmentDepth.xy + vec2(x, y) * texelSize));
+            float texelDepth = decodeFloat(texture(depthMap, fragmentDepth.xy + vec2(x, y) * texelSize));
             if (fragmentDepth.z < texelDepth) {
               amountInLight += 1.0;
             }
         }
     }
-    amountInLight /= 9.0;
+    return amountInLight /= 9.0;
+}
 
+void main() {
     //Blin-Phong; Re-normalize vectors
     vec3 newN = normalize(N);
     vec3 toLight = normalize(positionToLight);
@@ -86,7 +89,7 @@ void main() {
 
     vec4 diff = diff1 + diff2 + diff3 + diff4;
     if(isLit) {
-        diff += max(dot(sLight, newN), 0.0) * color * spotlight_color;
+        diff += vec4(max(dot(sLight, newN), 0.0) * color * spotlight_color * amountInLight(spotlightDepthMap));
     }
 
     vec4 spec1 = fSpecularColor * light_color[0] * pow(max(dot(newN, H1), 0.0), fSpecularExponent);
@@ -108,10 +111,9 @@ void main() {
 
     vec4 spec = spec1 + spec2 + spec3 + spec4;
     if(isLit) {
-        spec += fSpecularColor * spotlight_color * pow(max(dot(newN, sLightH), 0.0), fSpecularExponent);
+        spec += vec4(fSpecularColor * spotlight_color * pow(max(dot(newN, sLightH), 0.0), fSpecularExponent) * amountInLight(spotlightDepthMap));
     }
 
     fColor = amb + diff + spec;
-    fColor = vec4(amountInLight * fColor);
     fColor.a = 1.0;
 }

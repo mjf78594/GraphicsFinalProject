@@ -43,6 +43,7 @@ var savedDolly;
 var worldToDraw;
 
 //Arrays of vec4 colors
+var cubeColors;
 var trackColors;
 var railColors;
 
@@ -115,7 +116,7 @@ var tstep = 0.2; //delta t
 
 //Variables for Shadows
 var uLightMV; //Light Model View matrix for camera shaders
-var uLightProj;//Light projection matrix for camera shaders
+var uLightsProj;//Light projection matrix for camera shaders
 var uShadowMV; //Model View matrix for light shaders
 var uShadowProj; //Projection matrix for the light shaders
 
@@ -124,7 +125,7 @@ var lightLookingAt;
 
 var shadowFrameBuffer; //The frame buffer for the shadows
 var shadowRenderBuffer; //The render buffer for the shadows
-var shadowSampler; //The texture sampler for depth which is used to calculate the shadows
+var sShadowSampler; //The texture sampler for the spotlight
 var shadowDepthTexture; //The actual texture that records depth
 var shadowTextureSize; //The size of the shadowTexture
 var ushadowTextureSize; //The uniform that gets passed into the shader
@@ -156,8 +157,9 @@ window.onload = function init() {
     spotlight_direction = gl.getUniformLocation(program, "spotlight_direction");
     cutoff = gl.getUniformLocation(program, "cutoff");
     uLightMV = gl.getUniformLocation(program, "lightMV");
-    uLightProj = gl.getUniformLocation(program, "lightProj");
-    shadowSampler = gl.getUniformLocation(program, "depthColorTexture");
+    uLightsProj = gl.getUniformLocation(program, "lightProj");
+    sShadowSampler = gl.getUniformLocation(program, "spotlightDepthMap");
+    gl.uniform1i(sShadowSampler, 0);
     ushadowTextureSize = gl.getUniformLocation(program, "shadowDepthTextureSize");
 
     gl.uniform1f(cutoff, Math.cos(radians(20.0)));
@@ -203,7 +205,15 @@ window.onload = function init() {
     //identity matrix, will be used for movement orientation
     movementMat = mat4();
 
-    /////Define the colors of the track and rails
+    /////Define the colors of the cart, track, and rails
+    cubeColors = [];
+    cubeColors.push(vec4(0.0, 0.0, 1.0, 1.0)); //blue
+    cubeColors.push(vec4(1.0, 0.0, 1.0, 1.0)); //light blue
+    cubeColors.push(vec4(0.0, 1.0, 1.0, 1.0)); //purple
+    cubeColors.push(vec4(1.0, 0.0, 0.0, 1.0)); //red
+    cubeColors.push(vec4(0.6, 0.1, 0.3, 1.0)); //maroon
+    cubeColors.push(vec4(0.3, 1.0, 0.4, 1.0)); //yellow green
+
     trackColors = [];
     trackColors.push(vec4(0.8, 0.4, 0.2, 1.0)); //brown
     trackColors.push(vec4(0.8, 0.4, 0.2, 1.0)); //brown
@@ -418,7 +428,7 @@ window.onload = function init() {
     gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, shadowDepthTexture);
-    gl.uniform1i(shadowSampler, 0);
+
 
     window.setInterval(update, 16);
 }
@@ -596,15 +606,22 @@ function update() {
 }
 
 function render() {
-    ///////The first pass will be for the shadow map rendering/////////
+    //////////Documentation for Final Project///////////
+    /*
+    In order to shadow map correctly, there needs to be a pass for every single light source in the scene.
+    This means that though the projection matrix for the lights stays the same (since it is an ortho projection)
+    we have 5 model view matrices that we bind to the light  shader programs and draw shadow maps with.
+    All 5 model view matrices as well as the projection matrix are then passed into the camera view shaders and are used
+    to determine whether or not shadows are being cast or not.
+     */
     gl.useProgram(lightProgram);
     //Set perspective for light shader
-    var lightp = ortho(-100, 100, -100, 100, -100, 100);
-    gl.uniformMatrix4fv(uShadowProj, false, flatten(lightp));
+    var lightsP = ortho(-100, 100, -100, 100, -100, 100);
+    gl.uniformMatrix4fv(uShadowProj, false, flatten(lightsP));
 
     //Set ViewPoint for light shader
-    var lightmv = lookAt(lightLookingFrom, lightLookingAt, vec3(0, 1, 0));
-    gl.uniformMatrix4fv(uShadowMV, false, flatten(lightmv));
+    var sLightMV = lookAt(lightLookingFrom, lightLookingAt, vec3(0, 1, 0));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(sLightMV));
 
 
     //Switch programs to do the camera drawing
@@ -618,10 +635,10 @@ function render() {
     gl.uniformMatrix4fv(umv, false, flatten(mv));
 
     //Set perspective for light shader
-    gl.uniformMatrix4fv(uLightProj, false, flatten(lightp));
+    gl.uniformMatrix4fv(uLightsProj, false, flatten(lightsP));
 
     //Set ViewPoint for light shader
-    gl.uniformMatrix4fv(uLightMV, false, flatten(lightmv));
+    gl.uniformMatrix4fv(uLightMV, false, flatten(sLightMV));
 
     //Make sure we have a way to get back to a designated reference matrix
     var commonMat = mv;
@@ -689,7 +706,15 @@ function render() {
     lightColors.push(whiteC);
     gl.uniform4fv(light_color, flatten(lightColors));
 
-    drawShadows(lightmv);
+    //This is where we make all of our calls to drawShadow and our single call to drawModels
+    //We bind different model view matrices with regards to the respective lights everytime before drawShadows() is called
+    //Except for the first call since we bound the spotlights model view matrix earlier.
+    //Since we need to trade off uLightMV we switch back to the lightProgram. When drawModels is called the shader
+    //program will switch back to 'program' in order to draw everything from the camera's perspective
+    gl.useProgram(lightProgram);
+    drawShadows(sLightMV);
+
+
     drawModels(commonMat);
 }
 

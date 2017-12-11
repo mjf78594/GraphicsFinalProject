@@ -19,11 +19,19 @@ out vec3 H4;
 out vec3 positionToLight;
 out vec4 eyePosition;
 out vec3 eye;
-out vec4 shadowPos;
+out vec4 sShadowPos;
+out vec4 rShadowPos;
+out vec4 gShadowPos;
+out vec4 bShadowPos;
+out vec4 wShadowPos;
 
 uniform mat4 mv;
 uniform mat4 proj;
-uniform mat4 lightMV;
+uniform mat4 sLightMV;
+uniform mat4 rLightMV;
+uniform mat4 gLightMV;
+uniform mat4 bLightMV;
+uniform mat4 wLightMV;
 uniform mat4 lightProj;
 uniform vec4 light_position[4]; //A location in space
 uniform vec4 light_color[4];
@@ -53,7 +61,11 @@ void main() {
     vec3 normal = normalize(mv * vNormal).xyz;
 
     gl_Position = proj * veyepos;
-    shadowPos = texUnitConverter * lightProj * lightMV * vPosition;
+    sShadowPos = texUnitConverter * lightProj * sLightMV * vPosition;
+    rShadowPos = texUnitConverter * lightProj * rLightMV * vPosition;
+    gShadowPos = texUnitConverter * lightProj * gLightMV * vPosition;
+    bShadowPos = texUnitConverter * lightProj * bLightMV * vPosition;
+    wShadowPos = texUnitConverter * lightProj * wLightMV * vPosition;
 
     N = normal;
     eye = E;

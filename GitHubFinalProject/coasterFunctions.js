@@ -171,20 +171,20 @@ window.onload = function init() {
     cutoff = gl.getUniformLocation(program, "cutoff");
     uSLightMV = gl.getUniformLocation(program, "sLightMV");
     uRLightMV = gl.getUniformLocation(program, "rLightMV");
-    uGLightMV = gl.getUniformLocation(program, "gLightMV");
-    uBLightMV = gl.getUniformLocation(program, "bLightMV");
-    uWLightMV = gl.getUniformLocation(program, "wLightMV");
+    // uGLightMV = gl.getUniformLocation(program, "gLightMV");
+    // uBLightMV = gl.getUniformLocation(program, "bLightMV");
+    // uWLightMV = gl.getUniformLocation(program, "wLightMV");
     uLightsProj = gl.getUniformLocation(program, "lightProj");
     sShadowSampler = gl.getUniformLocation(program, "spotlightDepthMap");
     gl.uniform1i(sShadowSampler, 0);
     rShadowSampler = gl.getUniformLocation(program, "rLightDepthMap");
     gl.uniform1i(sShadowSampler, 1);
-    gShadowSampler = gl.getUniformLocation(program, "gLightDepthMap");
-    gl.uniform1i(sShadowSampler, 2);
-    bShadowSampler = gl.getUniformLocation(program, "bLightDepthMap");
-    gl.uniform1i(sShadowSampler, 3);
-    wShadowSampler = gl.getUniformLocation(program, "wLightDepthMap");
-    gl.uniform1i(sShadowSampler, 4);
+    // gShadowSampler = gl.getUniformLocation(program, "gLightDepthMap");
+    // gl.uniform1i(sShadowSampler, 2);
+    // bShadowSampler = gl.getUniformLocation(program, "bLightDepthMap");
+    // gl.uniform1i(sShadowSampler, 3);
+    // wShadowSampler = gl.getUniformLocation(program, "wLightDepthMap");
+    // gl.uniform1i(sShadowSampler, 4);
     ushadowTextureSize = gl.getUniformLocation(program, "shadowDepthTextureSize");
 
     gl.uniform1f(cutoff, Math.cos(radians(20.0)));
@@ -445,33 +445,33 @@ window.onload = function init() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-    gShadowDepthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-    bShadowDepthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-    wShadowDepthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    // gShadowDepthTexture = gl.createTexture();
+    // gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    //
+    // bShadowDepthTexture = gl.createTexture();
+    // gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    //
+    // wShadowDepthTexture = gl.createTexture();
+    // gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
     shadowRenderBuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, shadowRenderBuffer);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowTextureSize, shadowTextureSize);
 
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sShadowDepthTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, rShadowDepthTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, gShadowDepthTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT3, gl.TEXTURE_2D, bShadowDepthTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT4, gl.TEXTURE_2D, wShadowDepthTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rShadowDepthTexture, 0);
+    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rShadowDepthTexture, 0);
+    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, gShadowDepthTexture, 0);
+    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, bShadowDepthTexture, 0);
+    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, wShadowDepthTexture, 0);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowRenderBuffer);
 
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -675,9 +675,9 @@ function render() {
 
     //Set model view for red light
     var rLightMV = lookAt(vec3(-95, 15, -95), vec3(0,0,0), vec3(0, 1, 0));
-    var gLightMV = lookAt(vec3(95, 15, 95), vec3(0,0,0), vec3(0, 1, 0));
-    var bLightMV = lookAt(vec3(-95, 15, 95), vec3(0,0,0), vec3(0, 1, 0));
-    var wLightMV = lookAt(vec3(95, 15, -95), vec3(0,0,0), vec3(0, 1, 0));
+    // var gLightMV = lookAt(vec3(95, 15, 95), vec3(0,0,0), vec3(0, 1, 0));
+    // var bLightMV = lookAt(vec3(-95, 15, 95), vec3(0,0,0), vec3(0, 1, 0));
+    // var wLightMV = lookAt(vec3(95, 15, -95), vec3(0,0,0), vec3(0, 1, 0));
 
     //Switch programs to do the camera drawing
     gl.useProgram(program);
@@ -695,9 +695,9 @@ function render() {
     //Set ViewPoint for light shader
     gl.uniformMatrix4fv(uSLightMV, false, flatten(sLightMV));
     gl.uniformMatrix4fv(uRLightMV, false, flatten(rLightMV));
-    gl.uniformMatrix4fv(uGLightMV, false, flatten(gLightMV));
-    gl.uniformMatrix4fv(uBLightMV, false, flatten(bLightMV));
-    gl.uniformMatrix4fv(uWLightMV, false, flatten(wLightMV));
+    // gl.uniformMatrix4fv(uGLightMV, false, flatten(gLightMV));
+    // gl.uniformMatrix4fv(uBLightMV, false, flatten(bLightMV));
+    // gl.uniformMatrix4fv(uWLightMV, false, flatten(wLightMV));
 
     //Make sure we have a way to get back to a designated reference matrix
     var commonMat = mv;
@@ -771,39 +771,39 @@ function render() {
     //Since we need to trade off uShadowMV we switch back to the lightProgram. When drawModels is called the shader
     //program will switch back to 'program' in order to draw everything from the camera's perspective
     gl.useProgram(program);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, sShadowDepthTexture);
-    gl.useProgram(lightProgram);
-    gl.uniformMatrix4fv(uShadowMV, false, flatten(sLightMV));
-    drawShadows(sLightMV);
-
-    gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, rShadowDepthTexture);
     gl.useProgram(lightProgram);
     gl.uniformMatrix4fv(uShadowMV, false, flatten(rLightMV));
     drawShadows(rLightMV);
 
-    gl.useProgram(program);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
-    gl.useProgram(lightProgram);
-    gl.uniformMatrix4fv(uShadowMV, false, flatten(gLightMV));
-    drawShadows(gLightMV);
-
-    gl.useProgram(program);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
-    gl.useProgram(lightProgram);
-    gl.uniformMatrix4fv(uShadowMV, false, flatten(bLightMV));
-    drawShadows(bLightMV);
-
-    gl.useProgram(program);
-    gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
-    gl.useProgram(lightProgram);
-    gl.uniformMatrix4fv(uShadowMV, false, flatten(wLightMV));
-    drawShadows(wLightMV);
+    // gl.useProgram(program);
+    // gl.activeTexture(gl.TEXTURE1);
+    // gl.bindTexture(gl.TEXTURE_2D, rShadowDepthTexture);
+    // gl.useProgram(lightProgram);
+    // gl.uniformMatrix4fv(uShadowMV, false, flatten(rLightMV));
+    // drawShadows(rLightMV);
+    //
+    // gl.useProgram(program);
+    // gl.activeTexture(gl.TEXTURE2);
+    // gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
+    // gl.useProgram(lightProgram);
+    // gl.uniformMatrix4fv(uShadowMV, false, flatten(gLightMV));
+    // drawShadows(gLightMV);
+    //
+    // gl.useProgram(program);
+    // gl.activeTexture(gl.TEXTURE3);
+    // gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
+    // gl.useProgram(lightProgram);
+    // gl.uniformMatrix4fv(uShadowMV, false, flatten(bLightMV));
+    // drawShadows(bLightMV);
+    //
+    // gl.useProgram(program);
+    // gl.activeTexture(gl.TEXTURE4);
+    // gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
+    // gl.useProgram(lightProgram);
+    // gl.uniformMatrix4fv(uShadowMV, false, flatten(wLightMV));
+    // drawShadows(wLightMV);
 
     gl.useProgram(lightProgram);
     drawModels(commonMat);

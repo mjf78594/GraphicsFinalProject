@@ -17,8 +17,8 @@
       <file leaf-file-name="coasterFunctions.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterFunctions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="12400">
-              <caret line="469" column="82" lean-forward="false" selection-start-line="469" selection-start-column="82" selection-end-line="469" selection-end-column="82" />
+            <state relative-caret-position="989">
+              <caret line="685" column="72" lean-forward="true" selection-start-line="685" selection-start-column="72" selection-end-line="685" selection-end-column="72" />
               <folding />
             </state>
           </provider>
@@ -27,8 +27,18 @@
       <file leaf-file-name="vert-shader.glsl" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GitHubFinalProject/vert-shader.glsl">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="729">
-              <caret line="64" column="4" lean-forward="false" selection-start-line="64" selection-start-column="4" selection-end-line="64" selection-end-column="4" />
+            <state relative-caret-position="1169">
+              <caret line="67" column="4" lean-forward="false" selection-start-line="67" selection-start-column="4" selection-end-line="67" selection-end-column="4" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="frag-shader.glsl" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GitHubFinalProject/frag-shader.glsl">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="581">
+              <caret line="106" column="116" lean-forward="false" selection-start-line="106" selection-start-column="116" selection-end-line="106" selection-end-column="116" />
               <folding />
             </state>
           </provider>
@@ -39,16 +49,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="640">
               <caret line="16" column="33" lean-forward="false" selection-start-line="16" selection-start-column="33" selection-end-line="16" selection-end-column="33" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="frag-shader.glsl" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GitHubFinalProject/frag-shader.glsl">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="560">
-              <caret line="98" column="142" lean-forward="false" selection-start-line="98" selection-start-column="142" selection-end-line="98" selection-end-column="142" />
               <folding />
             </state>
           </provider>
@@ -65,8 +65,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>shadowD</find>
-      <find>posX</find>
       <find>vDepth</find>
       <find>gl.useProgram</find>
       <find>buffer</find>
@@ -95,6 +93,8 @@
       <find>uLightMV</find>
       <find>sLightMV</find>
       <find>lightMV</find>
+      <find>rLight</find>
+      <find>pyrami</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -109,8 +109,9 @@
         <option value="$PROJECT_DIR$/GitHubFinalProject/lightVert-shader.glsl" />
         <option value="$PROJECT_DIR$/GitHubFinalProject/lightFrag-shader.glsl" />
         <option value="$PROJECT_DIR$/GitHubFinalProject/coasterIndex.html" />
-        <option value="$PROJECT_DIR$/GitHubFinalProject/frag-shader.glsl" />
         <option value="$PROJECT_DIR$/GitHubFinalProject/vert-shader.glsl" />
+        <option value="$PROJECT_DIR$/GitHubFinalProject/frag-shader.glsl" />
+        <option value="$PROJECT_DIR$/GitHubFinalProject/geometryCreationFunctions.js" />
         <option value="$PROJECT_DIR$/GitHubFinalProject/coasterFunctions.js" />
       </list>
     </option>
@@ -164,7 +165,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/Projects/Project5/fshader-complete.glsl" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/Projects/Project5/HelloWorldFunctions.js" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
     <property name="nodejs_interpreter_path" value="C:/Program Files/nodejs/node" />
@@ -210,12 +211,12 @@
       <workItem from="1512791159490" duration="4446000" />
       <workItem from="1512938863242" duration="10264000" />
       <workItem from="1512954356784" duration="3367000" />
-      <workItem from="1512965344549" duration="2300000" />
+      <workItem from="1512965344549" duration="6972000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="55638000" />
+    <option name="totallyTimeSpent" value="60310000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-16" y="-16" width="3232" height="1732" extended-state="6" />
@@ -542,32 +543,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GitHubFinalProject/geometryCreationFunctions.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-7217">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/Projects/Project4/coasterFunctions.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="600">
           <caret line="177" column="4" lean-forward="false" selection-start-line="177" selection-start-column="4" selection-end-line="184" selection-end-column="61" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/Projects/Project5/HelloWorldFunctions.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-12600">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterIndex.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="640">
-          <caret line="16" column="33" lean-forward="false" selection-start-line="16" selection-start-column="33" selection-end-line="16" selection-end-column="33" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -595,26 +574,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GitHubFinalProject/frag-shader.glsl">
+    <entry file="file://$PROJECT_DIR$/../../Bethel 17-18/Fall 2017/Graphics/Projects/Project5/HelloWorldFunctions.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="560">
-          <caret line="98" column="142" lean-forward="false" selection-start-line="98" selection-start-column="142" selection-end-line="98" selection-end-column="142" />
+        <state relative-caret-position="1040">
+          <caret line="140" column="69" lean-forward="false" selection-start-line="139" selection-start-column="7" selection-end-line="140" selection-end-column="69" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GitHubFinalProject/vert-shader.glsl">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="729">
-          <caret line="64" column="4" lean-forward="false" selection-start-line="64" selection-start-column="4" selection-end-line="64" selection-end-column="4" />
+        <state relative-caret-position="1169">
+          <caret line="67" column="4" lean-forward="false" selection-start-line="67" selection-start-column="4" selection-end-line="67" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GitHubFinalProject/frag-shader.glsl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="581">
+          <caret line="106" column="116" lean-forward="false" selection-start-line="106" selection-start-column="116" selection-end-line="106" selection-end-column="116" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GitHubFinalProject/geometryCreationFunctions.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1081">
+          <caret line="247" column="41" lean-forward="false" selection-start-line="247" selection-start-column="41" selection-end-line="247" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterIndex.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="640">
+          <caret line="16" column="33" lean-forward="false" selection-start-line="16" selection-start-column="33" selection-end-line="16" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GitHubFinalProject/coasterFunctions.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12400">
-          <caret line="469" column="82" lean-forward="false" selection-start-line="469" selection-start-column="82" selection-end-line="469" selection-end-column="82" />
+        <state relative-caret-position="989">
+          <caret line="685" column="72" lean-forward="true" selection-start-line="685" selection-start-column="72" selection-end-line="685" selection-end-column="72" />
           <folding />
         </state>
       </provider>

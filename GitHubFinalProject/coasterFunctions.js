@@ -25,7 +25,8 @@ var forwardVector; //The Forward vector for the cart
 
 //Arrays for buffers
 var landscape;
-var pyramid;
+var cubes;
+var alphaSpheres;
 var cart;
 var trackPoints;
 var track;
@@ -49,7 +50,8 @@ var railColors;
 
 //Counters for the number of vertices that need to be rendered
 var groundVertices; //The number of vertices for the ground.
-var pyramidVertices; //The number of vertices for a pyramid.
+var cubeVertices; // the number of vertices for a cube
+var alphaSphereVertices; // The number of vertices for the alppha spheres
 var cartVertices;//The number of vertices for the cart
 var wheelVertices;//For the triangle Fan wheels
 var depthVertices;//For the triangle Fan wheel depth
@@ -171,20 +173,20 @@ window.onload = function init() {
     cutoff = gl.getUniformLocation(program, "cutoff");
     uSLightMV = gl.getUniformLocation(program, "sLightMV");
     uRLightMV = gl.getUniformLocation(program, "rLightMV");
-    // uGLightMV = gl.getUniformLocation(program, "gLightMV");
-    // uBLightMV = gl.getUniformLocation(program, "bLightMV");
-    // uWLightMV = gl.getUniformLocation(program, "wLightMV");
+    uGLightMV = gl.getUniformLocation(program, "gLightMV");
+    uBLightMV = gl.getUniformLocation(program, "bLightMV");
+    uWLightMV = gl.getUniformLocation(program, "wLightMV");
     uLightsProj = gl.getUniformLocation(program, "lightProj");
     sShadowSampler = gl.getUniformLocation(program, "spotlightDepthMap");
     gl.uniform1i(sShadowSampler, 0);
     rShadowSampler = gl.getUniformLocation(program, "rLightDepthMap");
-    gl.uniform1i(sShadowSampler, 1);
-    // gShadowSampler = gl.getUniformLocation(program, "gLightDepthMap");
-    // gl.uniform1i(sShadowSampler, 2);
-    // bShadowSampler = gl.getUniformLocation(program, "bLightDepthMap");
-    // gl.uniform1i(sShadowSampler, 3);
-    // wShadowSampler = gl.getUniformLocation(program, "wLightDepthMap");
-    // gl.uniform1i(sShadowSampler, 4);
+    gl.uniform1i(rShadowSampler, 1);
+    gShadowSampler = gl.getUniformLocation(program, "gLightDepthMap");
+    gl.uniform1i(gShadowSampler, 2);
+    bShadowSampler = gl.getUniformLocation(program, "bLightDepthMap");
+    gl.uniform1i(bShadowSampler, 3);
+    wShadowSampler = gl.getUniformLocation(program, "wLightDepthMap");
+    gl.uniform1i(wShadowSampler, 4);
     ushadowTextureSize = gl.getUniformLocation(program, "shadowDepthTextureSize");
 
     gl.uniform1f(cutoff, Math.cos(radians(20.0)));
@@ -202,7 +204,7 @@ window.onload = function init() {
     freeRoam = 0;
     trackIndex = 0;//Initialize track index to start the roller coaster
     lightVerts = groundVertices = depthVertices = cartVertices = wheelVertices = headVertices = eyeVertices = 0;//Vertex counts
-    pyramidVertices = trackVertices = railVertices = 0;//Vertex counts
+    alphaSphereVertices = cubeVertices = trackVertices = railVertices = 0;//Vertex counts
     xOffset = yOffset = zOffset = 0.0;
     headAngle = xAngle = yAngle = zAngle = 0.0;//Angle offsets
     xScale = yScale = zScale = 1.0;//Scale offsets
@@ -219,7 +221,8 @@ window.onload = function init() {
     //Initialize empty vertex arrays
     cart = [];
     landscape = [];
-    pyramid = [];
+    cubes = [];
+    alphaSpheres = [];
     trackPoints = [];
     track = [];
     rails = [];
@@ -376,7 +379,9 @@ window.onload = function init() {
 
     //Set up the landscape, cart, wheels, track boards and rails (Handled in geometryCreationFunctions.js)
     makeLandscape();
-    makePyramid();
+    //makePyramid();
+    makeCube(10.0, -10.0, -40.0, -100.0, 10.0, -10.0, cubeColors, cubes);
+    generateSphere(60, vec4(1.0, 0.45, 0.40, 0.6), alphaSpheres); //Create partially opaque orange spheres
     generateSphere(60, vec4(1.0, 0.0, 0.0, 1.0), lightGlobe); //Create a light source
     generateSphere(60, vec4(0.0, 1.0, 0.0, 1.0), lightGlobe); //Create a light source
     generateSphere(60, vec4(0.0, 0.0, 1.0, 1.0), lightGlobe); //Create a light source
@@ -398,7 +403,7 @@ window.onload = function init() {
     gl.enable(gl.DEPTH_TEST);
 
     //Concatinate the vertex arrays into the world to draw
-    worldToDraw = landscape.concat(pyramid).concat(lightGlobe).concat(cart).concat(sphereverts);
+    worldToDraw = landscape.concat(cubes).concat(alphaSpheres).concat(lightGlobe).concat(cart).concat(sphereverts);
     //////Bind buffer and set position and color/////
     bufferId = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
@@ -445,33 +450,29 @@ window.onload = function init() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-    // gShadowDepthTexture = gl.createTexture();
-    // gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    //
-    // bShadowDepthTexture = gl.createTexture();
-    // gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    //
-    // wShadowDepthTexture = gl.createTexture();
-    // gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gShadowDepthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+    bShadowDepthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+    wShadowDepthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowTextureSize, shadowTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
     shadowRenderBuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, shadowRenderBuffer);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowTextureSize, shadowTextureSize);
 
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rShadowDepthTexture, 0);
-    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rShadowDepthTexture, 0);
-    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, gShadowDepthTexture, 0);
-    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, bShadowDepthTexture, 0);
-    // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, wShadowDepthTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sShadowDepthTexture, 0);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, shadowRenderBuffer);
 
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -674,10 +675,10 @@ function render() {
     gl.uniformMatrix4fv(uShadowMV, false, flatten(sLightMV));
 
     //Set model view for red light
-    var rLightMV = lookAt(vec3(-95, 15, -95), vec3(0,0,0), vec3(0, 1, 0));
-    // var gLightMV = lookAt(vec3(95, 15, 95), vec3(0,0,0), vec3(0, 1, 0));
-    // var bLightMV = lookAt(vec3(-95, 15, 95), vec3(0,0,0), vec3(0, 1, 0));
-    // var wLightMV = lookAt(vec3(95, 15, -95), vec3(0,0,0), vec3(0, 1, 0));
+    var rLightMV = lookAt(vec3(-95, 15, -95), vec3(200, 200, 200), vec3(0, 1, 0));
+    var gLightMV = lookAt(vec3(95, 15, 95), vec3(-200, 200, -200), vec3(0, 1, 0));
+    var bLightMV = lookAt(vec3(-95, 15, 95), vec3(200, 200, -200), vec3(0, 1, 0));
+    var wLightMV = lookAt(vec3(95, 15, -95), vec3(-200, 200, 200), vec3(0, 1, 0));
 
     //Switch programs to do the camera drawing
     gl.useProgram(program);
@@ -695,9 +696,9 @@ function render() {
     //Set ViewPoint for light shader
     gl.uniformMatrix4fv(uSLightMV, false, flatten(sLightMV));
     gl.uniformMatrix4fv(uRLightMV, false, flatten(rLightMV));
-    // gl.uniformMatrix4fv(uGLightMV, false, flatten(gLightMV));
-    // gl.uniformMatrix4fv(uBLightMV, false, flatten(bLightMV));
-    // gl.uniformMatrix4fv(uWLightMV, false, flatten(wLightMV));
+    gl.uniformMatrix4fv(uGLightMV, false, flatten(gLightMV));
+    gl.uniformMatrix4fv(uBLightMV, false, flatten(bLightMV));
+    gl.uniformMatrix4fv(uWLightMV, false, flatten(wLightMV));
 
     //Make sure we have a way to get back to a designated reference matrix
     var commonMat = mv;
@@ -771,39 +772,39 @@ function render() {
     //Since we need to trade off uShadowMV we switch back to the lightProgram. When drawModels is called the shader
     //program will switch back to 'program' in order to draw everything from the camera's perspective
     gl.useProgram(program);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, sShadowDepthTexture);
+    gl.useProgram(lightProgram);
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(sLightMV));
+    drawShadows(sLightMV, sShadowDepthTexture);
+
+    gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, rShadowDepthTexture);
     gl.useProgram(lightProgram);
     gl.uniformMatrix4fv(uShadowMV, false, flatten(rLightMV));
-    drawShadows(rLightMV);
+    drawShadows(rLightMV, rShadowDepthTexture);
 
-    // gl.useProgram(program);
-    // gl.activeTexture(gl.TEXTURE1);
-    // gl.bindTexture(gl.TEXTURE_2D, rShadowDepthTexture);
-    // gl.useProgram(lightProgram);
-    // gl.uniformMatrix4fv(uShadowMV, false, flatten(rLightMV));
-    // drawShadows(rLightMV);
-    //
-    // gl.useProgram(program);
-    // gl.activeTexture(gl.TEXTURE2);
-    // gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
-    // gl.useProgram(lightProgram);
-    // gl.uniformMatrix4fv(uShadowMV, false, flatten(gLightMV));
-    // drawShadows(gLightMV);
-    //
-    // gl.useProgram(program);
-    // gl.activeTexture(gl.TEXTURE3);
-    // gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
-    // gl.useProgram(lightProgram);
-    // gl.uniformMatrix4fv(uShadowMV, false, flatten(bLightMV));
-    // drawShadows(bLightMV);
-    //
-    // gl.useProgram(program);
-    // gl.activeTexture(gl.TEXTURE4);
-    // gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
-    // gl.useProgram(lightProgram);
-    // gl.uniformMatrix4fv(uShadowMV, false, flatten(wLightMV));
-    // drawShadows(wLightMV);
+    gl.useProgram(program);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, gShadowDepthTexture);
+    gl.useProgram(lightProgram);
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(gLightMV));
+    drawShadows(gLightMV, gShadowDepthTexture);
+
+    gl.useProgram(program);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, bShadowDepthTexture);
+    gl.useProgram(lightProgram);
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(bLightMV));
+    drawShadows(bLightMV, bShadowDepthTexture);
+
+    gl.useProgram(program);
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, wShadowDepthTexture);
+    gl.useProgram(lightProgram);
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(wLightMV));
+    drawShadows(wLightMV, wShadowDepthTexture);
 
     gl.useProgram(lightProgram);
     drawModels(commonMat);
@@ -812,11 +813,12 @@ function render() {
 //////////This function draws the shadows//////////
 //Since we are drawing shadows we do not need to set specular components, ambient light etc
 //So all that is included in the drawing portion is just the rotations and drawing calls
-function drawShadows(commonMat) {
+function drawShadows(commonMat, shadowDepthTexture) {
     gl.useProgram(lightProgram);
 
     // Draw to our off screen drawing buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFrameBuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, shadowDepthTexture, 0);
 
     // Set the viewport to our shadow texture's size
     gl.viewport(0, 0, shadowTextureSize, shadowTextureSize);
@@ -831,36 +833,71 @@ function drawShadows(commonMat) {
     gl.drawArrays(gl.TRIANGLES, 0, groundVertices);
     placeholder += groundVertices;
 
-    ////Draw some pyramids/////
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    ////Draw some cubes/////
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     var mv = commonMat;
     mv = mult(mv, translate(30, -50, 30));
     mv = mult(mv, rotateY(90));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     mv = commonMat;
     mv = mult(mv, translate(-30, -50, 30));
     mv = mult(mv, rotateY(180));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     mv = commonMat;
     mv = mult(mv, translate(30, -50, -30));
     mv = mult(mv, rotateY(270));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     mv = commonMat;
     mv = mult(mv, translate(-30, -50, -30));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
-    placeholder += pyramidVertices;
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
+    placeholder += cubeVertices;
+
+    //Draw the alpha spheres
+    mv = commonMat;
+    mv = mult(mv, translate(0, -30, 0));
+    mv = mult(mv, scalem(8, 8, 8));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    var mv = commonMat;
+    mv = mult(mv, translate(30, -60, 30));
+    mv = mult(mv, rotateY(90));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(-30, -60, 30));
+    mv = mult(mv, rotateY(180));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(30, -60, -30));
+    mv = mult(mv, rotateY(270));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(-30, -60, -30));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(uShadowMV, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+    placeholder += alphaSphereVertices;
 
     ///////Draw the light spheres///////
     //Red Light
@@ -1160,40 +1197,75 @@ function drawModels(commonMat) {
     gl.drawArrays(gl.TRIANGLES, 0, groundVertices);
     placeholder += groundVertices;
 
-    ////Draw some pyramids/////
-    //set the specular color and exponent for pyramids
+    ////Draw some cubes/////
+    //set the specular color and exponent for cubes
     gl.vertexAttrib4fv(vSpecularColor, vec4(0.0, 0.0, 0.0, 1.0));
     gl.vertexAttrib1f(vSpecularExponent, 0.0);
 
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     var mv = commonMat;
     mv = mult(mv, translate(30, -50, 30));
     mv = mult(mv, rotateY(90));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     mv = commonMat;
     mv = mult(mv, translate(-30, -50, 30));
     mv = mult(mv, rotateY(180));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     mv = commonMat;
     mv = mult(mv, translate(30, -50, -30));
     mv = mult(mv, rotateY(270));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
 
     mv = commonMat;
     mv = mult(mv, translate(-30, -50, -30));
     mv = mult(mv, scalem(.5, .5, .5));
     gl.uniformMatrix4fv(umv, false, flatten(mv));
-    gl.drawArrays(gl.TRIANGLES, placeholder, pyramidVertices);
-    placeholder += pyramidVertices;
+    gl.drawArrays(gl.TRIANGLES, placeholder, cubeVertices);
+    placeholder += cubeVertices;
+
+    //Draw the alpha spheres
+    mv = commonMat;
+    mv = mult(mv, translate(0, -30, 0));
+    mv = mult(mv, scalem(8, 8, 8));
+    gl.uniformMatrix4fv(umv, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    var mv = commonMat;
+    mv = mult(mv, translate(30, -60, 30));
+    mv = mult(mv, rotateY(90));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(umv, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(-30, -60, 30));
+    mv = mult(mv, rotateY(180));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(umv, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(30, -60, -30));
+    mv = mult(mv, rotateY(270));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(umv, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+
+    mv = commonMat;
+    mv = mult(mv, translate(-30, -60, -30));
+    mv = mult(mv, scalem(5, 5, 5));
+    gl.uniformMatrix4fv(umv, false, flatten(mv));
+    gl.drawArrays(gl.TRIANGLES, placeholder, alphaSphereVertices);
+    placeholder += alphaSphereVertices;
 
     ///////Draw the light spheres///////
     //set the specular color and exponent for lights
